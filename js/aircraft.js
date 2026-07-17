@@ -4,6 +4,8 @@ const AircraftManager = {
   selectedIcao24: null,
   lastApiTime: Date.now(),
   flightData: new Map(),
+  onSelect: null,
+  mapRef: null,
 
   createIcon(heading, isSelected) {
     const rotation = heading || 0;
@@ -38,7 +40,9 @@ const AircraftManager = {
     return [lat2 * 180 / Math.PI, lng2 * 180 / Math.PI];
   },
 
-  updateFromApi(flights, map) {
+  updateFromApi(flights, map, onSelect) {
+    this.mapRef = map;
+    this.onSelect = onSelect;
     const now = Date.now();
     this.lastApiTime = now;
     const currentIcao24s = new Set(flights.map(f => f.icao24));
@@ -57,17 +61,31 @@ const AircraftManager = {
         heading: flight.heading,
         velocity: flight.velocity,
         onGround: flight.onGround,
+        callsign: flight.callsign,
+        originCountry: flight.originCountry,
+        altitude: flight.altitude,
+        squawk: flight.squawk,
+        verticalRate: flight.verticalRate,
         time: now
       });
 
+      const isSelected = flight.icao24 === this.selectedIcao24;
       const existing = this.markers.get(flight.icao24);
+
       if (existing) {
         existing.setLatLng([flight.latitude, flight.longitude]);
-        existing.setIcon(this.createIcon(flight.heading, flight.icao24 === this.selectedIcao24));
+        existing.setIcon(this.createIcon(flight.heading, isSelected));
       } else {
         const marker = L.marker([flight.latitude, flight.longitude], {
           icon: this.createIcon(flight.heading, false)
         });
+
+        const icao24 = flight.icao24;
+        marker.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          this.selectAircraft(icao24, map, onSelect);
+        });
+
         marker.addTo(map);
         this.markers.set(flight.icao24, marker);
       }
@@ -75,13 +93,12 @@ const AircraftManager = {
   },
 
   async selectAircraft(icao24, map, onSelect) {
-    this.clearSelection();
-
     if (this.selectedIcao24 === icao24) {
-      this.selectedIcao24 = null;
+      this.clearSelection();
       return;
     }
 
+    this.clearSelection();
     this.selectedIcao24 = icao24;
 
     const marker = this.markers.get(icao24);
@@ -113,13 +130,14 @@ const AircraftManager = {
     }
 
     const data = this.flightData.get(icao24);
-    if (data) {
+    if (data && onSelect) {
       onSelect({
         icao24,
-        latitude: data.lat,
-        longitude: data.lng,
-        heading: data.heading,
-        velocity: data.velocity
+        callsign: data.callsign,
+        originCountry: data.originCountry,
+        altitude: data.altitude,
+        squawk: data.squawk,
+        verticalRate: data.verticalRate
       });
     }
   },
@@ -158,8 +176,8 @@ const AircraftManager = {
         marker.setIcon(this.createIcon(this.flightData.get(this.selectedIcao24)?.heading || 0, false));
       }
       const trail = this.trailLines.get(this.selectedIcao24);
-      if (trail) {
-        this.trailLines.get(this.selectedIcao24).map?.removeLayer(trail);
+      if (trail && this.mapRef) {
+        this.mapRef.removeLayer(trail);
         this.trailLines.delete(this.selectedIcao24);
       }
       this.selectedIcao24 = null;

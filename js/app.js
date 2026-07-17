@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   AIRPORTS.forEach(a => {
     const marker = L.marker([a.lat, a.lng], { icon: airportIcon });
     marker.bindTooltip(`<b>${a.iata}</b> - ${a.name}`, {
-      permanent: false,
       direction: 'top',
       offset: [0, -10]
     });
@@ -75,11 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function onAircraftSelect(flight) {
-    const data = AircraftManager.flightData.get(flight.icao24);
-    if (data) {
-      flight.callsign = flight.callsign || '---';
-      flight.originCountry = flight.originCountry || '---';
-    }
     updateFlightInfo(flight);
     sidebar.classList.remove('hidden');
     sidebar.classList.add('visible');
@@ -98,24 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
     AircraftManager.clearSelection();
   });
 
-  map.eachLayer(layer => {
-    if (layer instanceof L.Marker && !layer.options?.icon?.options?.className?.includes('airport')) {
-      layer.on('click', () => {
-        const icao24 = Object.keys(AircraftManager.markers).find(
-          k => AircraftManager.markers.get(k) === layer
-        );
-        if (icao24) {
-          AircraftManager.selectAircraft(icao24, map, onAircraftSelect);
-        }
-      });
-    }
-  });
-
   async function refreshFlights() {
     const bounds = getBounds();
     const flights = await FlightAPI.getFlights(bounds);
 
-    AircraftManager.updateFromApi(flights, map);
+    AircraftManager.updateFromApi(flights, map, onAircraftSelect);
 
     document.getElementById('plane-count').textContent =
       flights.filter(f => !f.onGround).length;
@@ -141,12 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
   map.on('moveend', () => {
     clearTimeout(moveTimeout);
     moveTimeout = setTimeout(refreshFlights, 500);
-  });
-
-  AircraftManager.markers.forEach((marker, icao24) => {
-    marker.on('click', () => {
-      AircraftManager.selectAircraft(icao24, map, onAircraftSelect);
-    });
   });
 
   refreshFlights();

@@ -27,10 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let moveTimeout = null;
   let moreInfoExpanded = false;
 
+  const AIRPORT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.1228 6H3.87715C3.39271 6 3 6.39271 3 6.87715C3 6.95865 3.01136 7.03976 3.03375 7.11812L4.17111 11.0989C4.57006 12.4952 4.76954 13.1934 5.30421 13.5967C5.83888 14 6.56499 14 8.01721 14H15.9828C17.435 14 18.1611 14 18.6958 13.5967C19.2305 13.1934 19.4299 12.4952 19.8289 11.0989L20.9663 7.11812C20.9886 7.03976 21 6.95865 21 6.87715C21 6.39271 20.6073 6 20.1228 6Z"></path><path d="M16 6L15 14M9 14L8 6"></path><path d="M15 14V22M9 14V22"></path><path d="M10 2H14"></path><path d="M12 2V6"></path></svg>`;
+
   const airportIcon = L.divIcon({
     className: 'airport-marker',
-    html: `<div style="color: #3b82f6; font-size: 18px; opacity: 0.7; transition: all 200ms ease; display: flex; align-items: center; justify-content: center;">
-      <i class="hgi-stroke hgi-airplane-02"></i>
+    html: `<div style="color: #3b82f6; width: 18px; height: 18px; opacity: 0.7; transition: all 200ms ease;">
+      ${AIRPORT_SVG}
     </div>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9]
@@ -89,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     moreInfoExpanded = !moreInfoExpanded;
     advancedInfo.style.display = moreInfoExpanded ? 'block' : 'none';
     btnMoreInfo.innerHTML = moreInfoExpanded
-      ? '<i class="hgi-stroke hgi-information-circle"></i> Less information'
-      : '<i class="hgi-stroke hgi-information-circle"></i> More information';
+      ? '<svg class="icon" width="14" height="14"><use href="#icon-ticket"></use></svg> Less information'
+      : '<svg class="icon" width="14" height="14"><use href="#icon-ticket"></use></svg> More information';
   });
 
   map.on('click', (e) => {

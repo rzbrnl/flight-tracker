@@ -7,32 +7,109 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=11" />
+    <link rel="stylesheet" href="css/style.css?v=13" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>" />
   </head>
   <body>
+    <!-- SVG Sprites -->
+    <svg style="display: none;">
+      <!-- Logo airplane -->
+      <symbol id="icon-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.41712 11.9183L7.73859 9.89656C8.29597 9.55783 8.57467 9.38846 8.76705 9.15616C9.59962 8.15082 8.86644 6.66595 8.99059 5.49686C9.1191 4.28671 10.2731 2.63158 11.4364 2.11845C11.7944 1.96052 12.2051 1.96052 12.5631 2.11845C13.7264 2.63158 14.8804 4.28671 15.0089 5.49686C15.1331 6.66595 14.3999 8.15082 15.2325 9.15616C15.4248 9.38846 15.7035 9.55783 16.2609 9.89656L19.5827 11.9182C20.5993 12.5369 20.9998 13.1973 20.9998 14.4395C20.9998 15.1156 20.7006 15.2968 20.0973 15.1588L14.2725 13.8261L14.0109 16.1149C13.9161 16.9448 13.8687 17.3598 14.0058 17.7398C14.327 18.63 15.4173 19.3591 16.0832 20.0066C16.4513 20.3644 16.8529 21.3934 16.4333 21.8613C16.1742 22.1503 15.7533 21.9157 15.4637 21.803L12.675 20.7184C12.3416 20.5887 12.1748 20.5239 11.9998 20.5239C11.8247 20.5239 11.6579 20.5887 11.3245 20.7184L8.53584 21.803C8.24619 21.9157 7.82534 22.1503 7.56625 21.8613C7.1466 21.3934 7.54825 20.3644 7.91628 20.0066C8.5822 19.3591 9.67255 18.63 9.9937 17.7398C10.1308 17.3598 10.0834 16.9448 9.98857 16.1149L9.72703 13.8261L3.90259 15.1587C3.29902 15.2968 2.99982 15.1155 3.00001 14.4391C3.00034 13.1971 3.4007 12.537 4.41712 11.9183Z"></path>
+      </symbol>
+      <!-- Airport -->
+      <symbol id="icon-airport" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.1228 6H3.87715C3.39271 6 3 6.39271 3 6.87715C3 6.95865 3.01136 7.03976 3.03375 7.11812L4.17111 11.0989C4.57006 12.4952 4.76954 13.1934 5.30421 13.5967C5.83888 14 6.56499 14 8.01721 14H15.9828C17.435 14 18.1611 14 18.6958 13.5967C19.2305 13.1934 19.4299 12.4952 19.8289 11.0989L20.9663 7.11812C20.9886 7.03976 21 6.95865 21 6.87715C21 6.39271 20.6073 6 20.1228 6Z"></path>
+        <path d="M16 6L15 14M9 14L8 6"></path>
+        <path d="M15 14V22M9 14V22"></path>
+        <path d="M10 2H14"></path>
+        <path d="M12 2V6"></path>
+      </symbol>
+      <!-- Search -->
+      <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 17L21 21"></path>
+        <path d="M19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19C15.4183 19 19 15.4183 19 11Z"></path>
+      </symbol>
+      <!-- Filter -->
+      <symbol id="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 7H6" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M3 17H9" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M18 17L21 17" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M15 7L21 7" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M6 7C6 6.06812 6 5.60218 6.15224 5.23463C6.35523 4.74458 6.74458 4.35523 7.23463 4.15224C7.60218 4 8.06812 4 9 4C9.93188 4 10.3978 4 10.7654 4.15224C11.2554 4.35523 11.6448 4.74458 11.8478 5.23463C12 5.60218 12 6.06812 12 7C12 7.93188 12 8.39782 11.8478 8.76537C11.6448 9.25542 11.2554 9.64477 10.7654 9.84776C10.3978 10 9.93188 10 9 10C8.06812 10 7.60218 10 7.23463 9.84776C6.74458 9.64477 6.35523 9.25542 6.15224 8.76537C6 8.39782 6 7.93188 6 7Z"></path>
+        <path d="M12 17C12 16.0681 12 15.6022 12.1522 15.2346C12.3552 14.7446 12.7446 14.3552 13.2346 14.1522C13.6022 14 14.0681 14 15 14C15.9319 14 16.3978 14 16.7654 14.1522C17.2554 14.3552 17.6448 14.7446 17.8478 15.2346C18 15.6022 18 16.0681 18 17C18 17.9319 18 18.3978 17.8478 18.7654C17.6448 19.2554 17.2554 19.6448 16.7654 19.8478C16.3978 20 15.9319 20 15 20C14.0681 20 13.6022 20 13.2346 19.8478C12.7446 19.6448 12.3552 19.2554 12.1522 18.7654C12 18.3978 12 17.9319 12 17Z"></path>
+      </symbol>
+      <!-- Settings -->
+      <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21.3175 7.14139L20.8239 6.28479C20.4506 5.63696 20.264 5.31305 19.9464 5.18388C19.6288 5.05472 19.2696 5.15664 18.5513 5.36048L17.3311 5.70418C16.8725 5.80994 16.3913 5.74994 15.9726 5.53479L15.6357 5.34042C15.2766 5.11043 15.0004 4.77133 14.8475 4.37274L14.5136 3.37536C14.294 2.71534 14.1842 2.38533 13.9228 2.19657C13.6615 2.00781 13.3143 2.00781 12.6199 2.00781H11.5051C10.8108 2.00781 10.4636 2.00781 10.2022 2.19657C9.94085 2.38533 9.83106 2.71534 9.61149 3.37536L9.27753 4.37274C9.12465 4.77133 8.84845 5.11043 8.48937 5.34042L8.15249 5.53479C7.73374 5.74994 7.25259 5.80994 6.79398 5.70418L5.57375 5.36048C4.85541 5.15664 4.49625 5.05472 4.17867 5.18388C3.86109 5.31305 3.67445 5.63696 3.30115 6.28479L2.80757 7.14139C2.45766 7.74864 2.2827 8.05227 2.31666 8.37549C2.35061 8.69871 2.58483 8.95918 3.05326 9.48012L4.0843 10.6328C4.3363 10.9518 4.51521 11.5078 4.51521 12.0077C4.51521 12.5078 4.33636 13.0636 4.08433 13.3827L3.05326 14.5354C2.58483 15.0564 2.35062 15.3168 2.31666 15.6401C2.2827 15.9633 2.45766 16.2669 2.80757 16.8741L3.30114 17.7307C3.67443 18.3785 3.86109 18.7025 4.17867 18.8316C4.49625 18.9608 4.85542 18.8589 5.57377 18.655L6.79394 18.3113C7.25263 18.2055 7.73387 18.2656 8.15267 18.4808L8.4895 18.6752C8.84851 18.9052 9.12464 19.2442 9.2775 19.6428L9.61149 20.6403C9.83106 21.3003 9.94085 21.6303 10.2022 21.8191C10.4636 22.0078 10.8108 22.0078 11.5051 22.0078H12.6199C13.3143 22.0078 13.6615 22.0078 13.9228 21.8191C14.1842 21.6303 14.294 21.3003 14.5136 20.6403L14.8476 19.6428C15.0004 19.2442 15.2765 18.9052 15.6356 18.6752L15.9724 18.4808C16.3912 18.2656 16.8724 18.2055 17.3311 18.3113L18.5513 18.655C19.2696 18.8589 19.6288 18.9608 19.9464 18.8316C20.264 18.7025 20.4506 18.3785 20.8239 17.7307L21.3175 16.8741C21.6674 16.2669 21.8423 15.9633 21.8084 15.6401C21.7744 15.3168 21.5402 15.0564 21.0718 14.5354L20.0407 13.3827C19.7887 13.0636 19.6098 12.5078 19.6098 12.0077C19.6098 11.5078 19.7888 10.9518 20.0407 10.6328L21.0718 9.48012C21.5402 8.95918 21.7744 8.69871 21.8084 8.37549C21.8423 8.05227 21.6674 7.74864 21.3175 7.14139Z" stroke-linecap="round"></path>
+        <path d="M15.5195 12C15.5195 13.933 13.9525 15.5 12.0195 15.5C10.0865 15.5 8.51953 13.933 8.51953 12C8.51953 10.067 10.0865 8.5 12.0195 8.5C13.9525 8.5 15.5195 10.067 15.5195 12Z"></path>
+      </symbol>
+      <!-- Close -->
+      <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6L6.00081 17.9992M17.9992 18L6 6.00085"></path>
+      </symbol>
+      <!-- Speed -->
+      <symbol id="icon-speed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path>
+        <path d="M6 12C6 8.68629 8.68629 6 12 6"></path>
+        <path d="M12 12L16 8"></path>
+      </symbol>
+      <!-- Altitude -->
+      <symbol id="icon-altitude" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M18 4L5.99997 4"></path>
+        <path d="M12 8V20" stroke-linejoin="round"></path>
+        <path d="M15.9999 12C15.9999 12 13.054 8.00001 11.9999 8C10.9458 7.99999 7.99994 12 7.99994 12" stroke-linejoin="round"></path>
+      </symbol>
+      <!-- Compass -->
+      <symbol id="icon-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="13" r="9" stroke-linecap="round"></circle>
+        <path d="M12 3.5V2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M10 2H14" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M14.7728 10.2571C15.5061 10.9837 14.3328 16.8933 13.1289 16.9974C12.1189 17.0848 11.8041 15.0928 11.5914 14.4614C11.3815 13.8383 11.1478 13.6139 10.5298 13.4095C8.95989 12.8901 8.17492 12.6304 8.0195 12.2192C7.60796 11.1304 13.8362 9.32902 14.7728 10.2571Z"></path>
+      </symbol>
+      <!-- Vertical -->
+      <symbol id="icon-vertical" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 5C9.58984 4.39316 11.1597 2 12 2C12.8403 2 14.4102 4.39316 15 5"></path>
+        <path d="M9 19C9.58984 19.6068 11.1597 22 12 22C12.8403 22 14.4102 19.6068 15 19"></path>
+        <path d="M12 2.23145V21.769"></path>
+      </symbol>
+      <!-- Ticket -->
+      <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M22 8.87895C21.9331 7.33687 21.7456 6.33298 21.2203 5.53884C20.9181 5.08196 20.5428 4.68459 20.1112 4.36468C18.9447 3.5 17.299 3.5 14.0078 3.5H9.99305C6.70178 3.5 5.05614 3.5 3.88962 4.36468C3.45805 4.68459 3.08267 5.08196 2.78047 5.53884C2.25526 6.33289 2.06776 7.33665 2.00083 8.87843C1.98938 9.14208 2.21648 9.34375 2.46531 9.34375C3.85109 9.34375 4.97449 10.533 4.97449 12C4.97449 13.467 3.85109 14.6562 2.46531 14.6562C2.21648 14.6562 1.98938 14.8579 2.00083 15.1216C2.06776 16.6634 2.25526 17.6671 2.78047 18.4612C3.08267 18.918 3.45805 19.3154 3.88962 19.6353C5.05614 20.5 6.70178 20.5 9.99306 20.5H14.0078C17.299 20.5 18.9447 20.5 20.1112 19.6353C20.5428 19.3154 20.9181 18.918 21.2203 18.4612C21.7456 17.667 21.9331 16.6631 22 15.1211V8.87895Z"></path>
+        <path d="M13 12L17 12" stroke-linecap="round"></path>
+        <path d="M9 16L17 16" stroke-linecap="round"></path>
+      </symbol>
+      <!-- Live / Signal -->
+      <symbol id="icon-live" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2"></circle>
+        <path d="M7.5 8C6.5 9 6 10.5 6 12C6 13.5 6.5 15 7.5 16"></path>
+        <path d="M4.5 6C3 7.5 2 9.5 2 12C2 14.5 3 16.5 4.5 18"></path>
+        <path d="M16.5 16C17.5 15 18 13.5 18 12C18 10.5 17.5 9 16.5 8"></path>
+        <path d="M19.5 18C21 16.5 22 14.5 22 12C22 9.5 21 7.5 19.5 6"></path>
+      </symbol>
+    </svg>
+
     <!-- Top Bar -->
     <header id="topbar">
       <div class="logo">
-        <i class="hgi-stroke hgi-airplane"></i>
+        <svg class="icon" width="20" height="20"><use href="#icon-logo"></use></svg>
         <span>SkyView</span>
       </div>
 
       <div class="search-wrapper">
         <div class="search-box">
-          <i class="hgi-stroke hgi-search-01 search-icon"></i>
+          <svg class="icon search-icon" width="14" height="14"><use href="#icon-search"></use></svg>
           <input type="text" id="search" placeholder="Search flights, airports..." autocomplete="off" />
         </div>
       </div>
 
       <div class="top-actions">
         <button class="top-btn" id="btn-filters" title="Filters">
-          <i class="hgi-stroke hgi-filter"></i>
+          <svg class="icon" width="18" height="18"><use href="#icon-filter"></use></svg>
         </button>
         <button class="top-btn" id="btn-settings" title="Settings">
-          <i class="hgi-stroke hgi-settings-01"></i>
+          <svg class="icon" width="18" height="18"><use href="#icon-settings"></use></svg>
         </button>
       </div>
     </header>
@@ -45,19 +122,18 @@
       <div class="sidebar-header">
         <span style="font-size: 13px; color: var(--text-muted);">Flight Details</span>
         <button id="close-sidebar" class="close-btn">
-          <i class="hgi-stroke hgi-cancel-01"></i>
+          <svg class="icon" width="14" height="14"><use href="#icon-close"></use></svg>
         </button>
       </div>
 
       <div class="flight-card">
-        <!-- Route -->
         <div class="flight-route">
           <div>
             <div class="airport-code" id="origin-code">---</div>
             <div class="airport-name" id="origin-name">Origin</div>
           </div>
           <div class="route-line">
-            <i class="hgi-stroke hgi-airplane"></i>
+            <svg class="icon" width="12" height="12"><use href="#icon-logo"></use></svg>
           </div>
           <div style="text-align: right;">
             <div class="airport-code" id="dest-code">---</div>
@@ -65,48 +141,62 @@
           </div>
         </div>
 
-        <!-- Flight Number -->
         <div class="flight-number">
-          <i class="hgi-stroke hgi-ticket-01"></i>
+          <svg class="icon" width="16" height="16"><use href="#icon-ticket"></use></svg>
           <span id="callsign">---</span>
           <span style="margin-left: auto; color: var(--text-muted); font-size: 11px;" id="country">---</span>
         </div>
 
-        <!-- Stats -->
         <div class="stats-grid">
           <div class="stat-item">
-            <div class="stat-label"><i class="hgi-stroke hgi-speed-meter"></i> Speed</div>
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
+              Speed
+            </div>
             <div class="stat-value" id="velocity">--- km/h</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label"><i class="hgi-stroke hgi-ruler"></i> Altitude</div>
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-altitude"></use></svg>
+              Altitude
+            </div>
             <div class="stat-value" id="altitude">--- m</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label"><i class="hgi-stroke hgi-navigation"></i> Heading</div>
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
+              Heading
+            </div>
             <div class="stat-value" id="heading">---°</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label"><i class="hgi-stroke hgi-arrow-up-down"></i> Vertical</div>
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-vertical"></use></svg>
+              Vertical
+            </div>
             <div class="stat-value" id="vertical-rate">--- m/s</div>
           </div>
         </div>
 
-        <!-- More Info -->
         <button class="more-info-btn" id="btn-more-info">
-          <i class="hgi-stroke hgi-information-circle"></i>
+          <svg class="icon" width="14" height="14"><use href="#icon-ticket"></use></svg>
           More information
         </button>
 
-        <!-- Advanced Info (hidden by default) -->
         <div id="advanced-info" style="display: none; margin-top: 12px;">
           <div class="stats-grid">
             <div class="stat-item">
-              <div class="stat-label"><i class="hgi-stroke hgi-number"></i> Squawk</div>
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
+                Squawk
+              </div>
               <div class="stat-value" id="squawk">---</div>
             </div>
             <div class="stat-item">
-              <div class="stat-label"><i class="hgi-stroke hgi-fingerprint-01"></i> ICAO24</div>
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
+                ICAO24
+              </div>
               <div class="stat-value mono" id="icao24">---</div>
             </div>
           </div>
@@ -117,30 +207,25 @@
     <!-- Bottom Bar -->
     <footer id="bottombar">
       <div class="bottom-stat">
-        <i class="hgi-stroke hgi-airplane"></i>
+        <svg class="icon" width="14" height="14"><use href="#icon-logo"></use></svg>
         <span class="value" id="plane-count">0</span>
         <span>flights</span>
       </div>
       <div class="bottom-stat">
-        <i class="hgi-stroke hgi-airplane-02"></i>
+        <svg class="icon" width="14" height="14"><use href="#icon-airport"></use></svg>
         <span class="value">20</span>
         <span>airports</span>
       </div>
-      <div class="bottom-stat">
-        <i class="hgi-stroke hgi-earth"></i>
-        <span class="value" id="country-count">0</span>
-        <span>countries</span>
-      </div>
       <div class="bottom-stat live">
-        <i class="hgi-solid hgi-circle-02 pulse"></i>
+        <svg class="icon live-icon" width="14" height="14"><use href="#icon-live"></use></svg>
         <span class="value" id="data-source">Live</span>
       </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/api.js?v=11"></script>
-    <script src="js/aircraft.js?v=11"></script>
-    <script src="js/map.js?v=11"></script>
-    <script src="js/app.js?v=11"></script>
+    <script src="js/api.js?v=13"></script>
+    <script src="js/aircraft.js?v=13"></script>
+    <script src="js/map.js?v=13"></script>
+    <script src="js/app.js?v=13"></script>
   </body>
 </html>

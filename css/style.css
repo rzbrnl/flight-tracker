@@ -158,6 +158,13 @@ code, .mono {
   z-index: 1;
 }
 
+/* ===== SVG ICONS ===== */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
 /* ===== AIRCRAFT MARKERS ===== */
 .aircraft-marker {
   transition: all var(--transition);
@@ -458,6 +465,11 @@ code, .mono {
 
 .bottom-stat.live i {
   color: #22c55e;
+}
+
+.bottom-stat.live .live-icon {
+  color: #22c55e;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ===== LEAFLET OVERRIDES ===== */

@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vuelos</title>
-    <link rel="stylesheet" href="css/style.css?v=6" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css" />
+    <link rel="stylesheet" href="css/style.css?v=8" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -21,39 +25,43 @@
         <button id="close-sidebar" class="close-btn">&times;</button>
         <div id="flight-info">
           <div class="flight-header">
-            <span class="callsign" id="callsign">---</span>
+            <div class="callsign-row">
+              <i class="hgi-stroke hgi-airplane hgi-flight-icon"></i>
+              <span class="callsign" id="callsign">---</span>
+            </div>
             <span class="country" id="country">---</span>
           </div>
           <div class="flight-details">
             <div class="detail-row">
-              <span class="label">Altitud</span>
+              <span class="label"><i class="hgi-stroke hgi-ruler"></i> Altitud</span>
               <span class="value" id="altitude">--- m</span>
             </div>
             <div class="detail-row">
-              <span class="label">Velocidad</span>
+              <span class="label"><i class="hgi-stroke hgi-speed-meter"></i> Velocidad</span>
               <span class="value" id="velocity">--- km/h</span>
             </div>
             <div class="detail-row">
-              <span class="label">Dirección</span>
+              <span class="label"><i class="hgi-stroke hgi-navigation"></i> Dirección</span>
               <span class="value" id="heading">---°</span>
             </div>
             <div class="detail-row">
-              <span class="label">Vertical</span>
+              <span class="label"><i class="hgi-stroke hgi-arrow-up-down"></i> Vertical</span>
               <span class="value" id="vertical-rate">--- m/s</span>
             </div>
             <div class="detail-row">
-              <span class="label">Squawk</span>
+              <span class="label"><i class="hgi-stroke hgi-number"></i> Squawk</span>
               <span class="value" id="squawk">---</span>
             </div>
             <div class="detail-row">
-              <span class="label">ICAO24</span>
+              <span class="label"><i class="hgi-stroke hgi-fingerprint-01"></i> ICAO24</span>
               <span class="value" id="icao24">---</span>
             </div>
           </div>
         </div>
       </div>
       <div id="stats">
-        <span id="plane-count">0</span> aviones en vuelo
+        <i class="hgi-stroke hgi-airplane stats-icon"></i>
+        <span id="plane-count">0</span> en vuelo
         <span class="separator">|</span>
         <span id="data-source">---</span>
         <span class="separator">|</span>
@@ -62,9 +70,9 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/api.js?v=6"></script>
-    <script src="js/aircraft.js?v=6"></script>
-    <script src="js/map.js?v=6"></script>
-    <script src="js/app.js?v=6"></script>
+    <script src="js/api.js?v=8"></script>
+    <script src="js/aircraft.js?v=8"></script>
+    <script src="js/map.js?v=8"></script>
+    <script src="js/app.js?v=8"></script>
   </body>
 </html>

@@ -29,19 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const airportIcon = L.divIcon({
     className: 'airport-marker',
-    html: `<svg width="16" height="16" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="4" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
-      <circle cx="8" cy="8" r="1.5" fill="#f59e0b"/>
-    </svg>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
+    html: `<div style="color: #f59e0b; font-size: 20px; filter: drop-shadow(0 0 4px #f59e0b60); display: flex; align-items: center; justify-content: center;">
+      <i class="hgi-stroke hgi-airplane-02"></i>
+    </div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
   });
 
   AIRPORTS.forEach(a => {
     const marker = L.marker([a.lat, a.lng], { icon: airportIcon });
-    marker.bindTooltip(`<b>${a.iata}</b> - ${a.name}`, {
+    marker.bindTooltip(`<b>${a.iata}</b> — ${a.name}`, {
       direction: 'top',
-      offset: [0, -10]
+      offset: [0, -12],
+      className: 'airport-tooltip'
     });
     marker.addTo(map);
   });
@@ -127,6 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshFlights();
   AircraftManager.startAnimation();
   setInterval(updateClock, 1000);
-  setInterval(refreshFlights, 15000);
+  setInterval(refreshFlights, 30000);
   updateClock();
 });

@@ -12,6 +12,7 @@ const DEMO_FLIGHTS = [
 const FlightAPI = {
   isUsingDemo: false,
   lastSuccess: 0,
+  retryCount: 0,
 
   async getFlights(bounds) {
     try {
@@ -21,26 +22,30 @@ const FlightAPI = {
         url += `?lamin=${b.south}&lomin=${b.west}&lamax=${b.north}&lomax=${b.east}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(10000)
+      });
+
       const text = await response.text();
 
-      if (!response.ok || text.startsWith('Too many') || text.startsWith('<')) {
-        throw new Error('Rate limited or error');
+      if (!response.ok || text.includes('Too many') || text.includes('rate limit')) {
+        throw new Error('Rate limited');
       }
 
       const data = JSON.parse(text);
 
-      if (!data.states) {
-        throw new Error('No states in response');
+      if (!data || !data.states) {
+        throw new Error('Invalid response');
       }
 
       this.isUsingDemo = false;
       this.lastSuccess = Date.now();
+      this.retryCount = 0;
       return this.parseFlights(data.states);
     } catch (error) {
-      console.warn('API issue, using demo data:', error.message);
+      this.retryCount++;
 
-      if (Date.now() - this.lastSuccess > 60000) {
+      if (this.retryCount > 3) {
         this.isUsingDemo = true;
       }
 

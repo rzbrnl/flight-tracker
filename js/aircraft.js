@@ -10,13 +10,13 @@ const AircraftManager = {
   createIcon(heading, isSelected) {
     const rotation = heading || 0;
     const color = isSelected ? '#00d4ff' : '#ffffff';
-    const size = isSelected ? 28 : 24;
+    const size = isSelected ? 32 : 24;
 
     return L.divIcon({
       className: `aircraft-marker ${isSelected ? 'selected' : ''}`,
-      html: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" style="transform: rotate(${rotation}deg)">
-        <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-      </svg>`,
+      html: `<div style="transform: rotate(${rotation}deg); color: ${color}; font-size: ${size}px; filter: drop-shadow(0 0 4px ${color}40); display: flex; align-items: center; justify-content: center;">
+        <i class="hgi-stroke hgi-airplane"></i>
+      </div>`,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2]
     });
@@ -80,10 +80,10 @@ const AircraftManager = {
           icon: this.createIcon(flight.heading, false)
         });
 
-        const icao24 = flight.icao24;
-        marker.on('click', (e) => {
+        const self = this;
+        marker.on('click', function(e) {
           L.DomEvent.stopPropagation(e);
-          this.selectAircraft(icao24, map, onSelect);
+          self.selectAircraft(flight.icao24, map, onSelect);
         });
 
         marker.addTo(map);
@@ -109,7 +109,8 @@ const AircraftManager = {
     try {
       const response = await fetch(`/api.php?track=${icao24}`);
       if (response.ok) {
-        const track = await response.json();
+        const text = await response.text();
+        const track = JSON.parse(text);
         if (track.path && track.path.length > 0) {
           const path = track.path
             .filter(p => p[1] !== null && p[2] !== null)
@@ -119,7 +120,8 @@ const AircraftManager = {
             const trailLine = L.polyline(path, {
               color: '#00d4ff',
               weight: 2,
-              opacity: 0.6
+              opacity: 0.6,
+              dashArray: '5, 10'
             }).addTo(map);
             this.trailLines.set(icao24, trailLine);
           }

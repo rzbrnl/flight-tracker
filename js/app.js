@@ -38,28 +38,24 @@ document.addEventListener('DOMContentLoaded', () => {
   closeSidebar.addEventListener('click', () => {
     sidebar.classList.remove('visible');
     sidebar.classList.add('hidden');
-    AircraftManager.clearSelection(map);
+    AircraftManager.clearSelection();
   });
 
   map.on('click', (e) => {
     if (e.originalEvent.target.closest('.aircraft-marker')) return;
     sidebar.classList.remove('visible');
     sidebar.classList.add('hidden');
-    AircraftManager.clearSelection(map);
+    AircraftManager.clearSelection();
   });
 
   async function refreshFlights() {
     const bounds = getBounds();
     const flights = await FlightAPI.getFlights(bounds);
 
-    AircraftManager.updateMarkers(flights, map, onAircraftSelect);
+    AircraftManager.updateFromApi(flights, map, onAircraftSelect);
 
     document.getElementById('plane-count').textContent =
       flights.filter(f => !f.onGround).length;
-
-    const now = new Date();
-    document.getElementById('last-update').textContent =
-      now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     if (FlightAPI.isUsingDemo) {
       document.getElementById('data-source').textContent = 'Demo';
@@ -73,11 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
   map.on('moveend', () => {
     clearTimeout(moveTimeout);
     moveTimeout = setTimeout(refreshFlights, 500);
   });
 
   refreshFlights();
-  setInterval(refreshFlights, 30000);
+  AircraftManager.startAnimation();
+  setInterval(updateClock, 1000);
+  setInterval(refreshFlights, 15000);
+  updateClock();
 });

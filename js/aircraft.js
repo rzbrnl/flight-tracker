@@ -1,10 +1,11 @@
 const AircraftManager = {
   markers: new Map(),
   trails: new Map(),
-  history: new Map(),
+  lastPositions: new Map(),
+  flightData: new Map(),
   selectedIcao24: null,
-  lastUpdate: Date.now(),
-  animFrame: null,
+  lastApiTime: Date.now(),
+  map: null,
 
   createIcon(heading, isSelected) {
     const rotation = heading || 0;
@@ -21,23 +22,28 @@ const AircraftManager = {
     });
   },
 
-  calculateNewPosition(lat, lng, heading, velocity, seconds) {
-    if (!velocity || !heading) return { lat, lng };
+  calcPosition(lat, lng, heading, velocity, seconds) {
+    if (!velocity || !heading || velocity < 1) return null;
     const R = 6371000;
     const d = velocity * seconds;
-    const bearing = heading * Math.PI / 180;
+    const brng = heading * Math.PI / 180;
     const lat1 = lat * Math.PI / 180;
     const lng1 = lng * Math.PI / 180;
-    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(bearing));
-    const lng2 = lng1 + Math.atan2(Math.sin(bearing) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
-    return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(d / R) +
+      Math.cos(lat1) * Math.sin(d / R) * Math.cos(brng)
+    );
+    const lng2 = lng1 + Math.atan2(
+      Math.sin(brng) * Math.sin(d / R) * Math.cos(lat1),
+      Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2)
+    );
+    return [lat2 * 180 / Math.PI, lng2 * 180 / Math.PI];
   },
 
-  updateMarkers(flights, map, onSelect) {
+  updateFromApi(flights, map, onSelect) {
+    this.map = map;
     const now = Date.now();
-    const elapsed = (now - this.lastUpdate) / 1000;
-    this.lastUpdate = now;
-
+    this.lastApiTime = now;
     const currentIcao24s = new Set(flights.map(f => f.icao24));
 
     this.markers.forEach((marker, icao24) => {
@@ -48,62 +54,102 @@ const AircraftManager = {
           map.removeLayer(this.trails.get(icao24));
           this.trails.delete(icao24);
         }
-        this.history.delete(icao24);
       }
     });
 
     flights.forEach(flight => {
       const isSelected = flight.icao24 === this.selectedIcao24;
-      const existing = this.markers.get(flight.icao24);
-      const prevData = this.history.get(flight.icao24);
 
-      if (!this.history.has(flight.icao24)) {
-        this.history.set(flight.icao24, []);
+      this.flightData.set(flight.icao24, {
+        lat: flight.latitude,
+        lng: flight.longitude,
+        heading: flight.heading,
+        velocity: flight.velocity,
+        onGround: flight.onGround,
+        time: now
+      });
+
+      if (!this.lastPositions.has(flight.icao24)) {
+        this.lastPositions.set(flight.icao24, []);
       }
-      const hist = this.history.get(flight.icao24);
-      hist.push({ lat: flight.latitude, lng: flight.longitude, time: now });
+      const hist = this.lastPositions.get(flight.icao24);
+      hist.push([flight.latitude, flight.longitude]);
       if (hist.length > 30) hist.shift();
 
-      if (existing && prevData && !flight.onGround && flight.velocity > 0) {
-        const pos = this.calculateNewPosition(
-          prevData.lat, prevData.lng,
-          flight.heading, flight.velocity, elapsed
-        );
-        existing.setLatLng([pos.lat, pos.lng]);
-        existing.setIcon(this.createIcon(flight.heading, isSelected));
+      if (!this.trails.has(flight.icao24) && hist.length > 1) {
+        const trailLine = L.polyline(hist, {
+          color: '#ffffff',
+          weight: 1,
+          opacity: 0.3
+        }).addTo(map);
+        this.trails.set(flight.icao24, trailLine);
+      } else if (this.trails.has(flight.icao24)) {
+        this.trails.get(flight.icao24).setLatLngs(hist);
+      }
 
-        const trail = this.trails.get(flight.icao24);
-        if (trail) {
-          const pts = hist.map(h => [h.lat, h.lng]);
-          trail.setLatLngs(pts);
-        } else if (hist.length > 1) {
-          const trailLine = L.polyline(hist.map(h => [h.lat, h.lng]), {
-            color: isSelected ? '#00d4ff' : '#ffffff',
-            weight: isSelected ? 2 : 1,
-            opacity: isSelected ? 0.6 : 0.3
-          }).addTo(map);
-          this.trails.set(flight.icao24, trailLine);
-        }
-      } else if (existing) {
+      const existing = this.markers.get(flight.icao24);
+      if (existing) {
         existing.setLatLng([flight.latitude, flight.longitude]);
         existing.setIcon(this.createIcon(flight.heading, isSelected));
       } else {
         const marker = L.marker([flight.latitude, flight.longitude], {
           icon: this.createIcon(flight.heading, isSelected)
         });
-
         marker.on('click', () => {
           this.selectedIcao24 = flight.icao24;
           onSelect(flight);
         });
-
         marker.addTo(map);
         this.markers.set(flight.icao24, marker);
       }
     });
   },
 
-  clearSelection(map) {
+  animate() {
+    if (!this.map) return;
+    const now = Date.now();
+    const elapsed = (now - this.lastApiTime) / 1000;
+
+    this.flightData.forEach((data, icao24) => {
+      if (data.onGround || !data.velocity || data.velocity < 1) return;
+
+      const newPos = this.calcPosition(
+        data.lat, data.lng,
+        data.heading, data.velocity, elapsed
+      );
+
+      if (newPos) {
+        const marker = this.markers.get(icao24);
+        if (marker) {
+          marker.setLatLng(newPos);
+        }
+        const trail = this.trails.get(icao24);
+        if (trail) {
+          const pts = trail.getLatLngs();
+          if (pts.length > 0) {
+            const lastPt = pts[pts.length - 1];
+            const lastLat = lastPt.lat || lastPt[0];
+            const lastLng = lastPt.lng || lastPt[1];
+            if (Math.abs(newPos[0] - lastLat) > 0.0001 || Math.abs(newPos[1] - lastLng) > 0.0001) {
+              trail.addLatLng(newPos);
+              const pts2 = trail.getLatLngs();
+              if (pts2.length > 30) {
+                trail.setLatLngs(pts2.slice(-30));
+              }
+            }
+          }
+        }
+      }
+    });
+
+    requestAnimationFrame(() => this.animate());
+  },
+
+  startAnimation() {
+    this.animate();
+  },
+
+  clearSelection() {
     if (this.selectedIcao24) {
       const marker = this.markers.get(this.selectedIcao24);
       if (marker) {

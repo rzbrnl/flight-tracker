@@ -14,9 +14,7 @@ const FlightAPI = {
 
   async getFlights() {
     try {
-      const response = await fetch('https://opensky-network.org/api/states/all', {
-        headers: { 'Accept': 'application/json' }
-      });
+      const response = await fetch('/api.php');
 
       if (!response.ok) throw new Error('API error');
 

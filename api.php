@@ -3,37 +3,78 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 
 $ADB_KEY = "896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14";
+$OS_CLIENT_ID = "rzbrnl-api-client";
+$OS_CLIENT_SECRET = "Z6GWmsmoQ1gM2TxEgaVUshxLLA88IskR";
+
+function getOpenSkyToken() {
+    global $OS_CLIENT_ID, $OS_CLIENT_SECRET;
+    $ch = curl_init("https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        "grant_type" => "client_credentials",
+        "client_id" => $OS_CLIENT_ID,
+        "client_secret" => $OS_CLIENT_SECRET
+    ]));
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $data = curl_exec($ch);
+    $err = curl_error($ch);
+    curl_close($ch);
+    if ($err) return null;
+    $json = json_decode($data, true);
+    return $json["access_token"] ?? null;
+}
+
+function fetchWithAuth($url) {
+    $token = getOpenSkyToken();
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    $headers = ["Accept: application/json"];
+    if ($token) {
+        $headers[] = "Authorization: Bearer " . $token;
+    }
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    return $data;
+}
 
 if (isset($_GET["flight"])) {
     $callsign = $_GET["flight"];
     $date = $_GET["date"] ?? date("Y-m-d");
     $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
-    $headers = [
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "X-RapidAPI-Key: " . $ADB_KEY,
-        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com"
-    ];
+        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
+        "Accept: application/json"
+    ]);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    echo $data;
+
 } elseif (isset($_GET["track"])) {
     $icao24 = $_GET["track"];
     $url = "https://opensky-network.org/api/tracks/all?icao24=" . $icao24 . "&time=0";
-    $headers = [];
+    echo fetchWithAuth($url);
+
 } elseif (isset($_GET["weather"])) {
     $airport = $_GET["weather"];
     $url = "https://aviationweather.gov/api/data/metar?ids=" . $airport . "&format=json";
-    $headers = [];
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    echo $data;
+
 } else {
     $url = "https://opensky-network.org/api/states/all";
     if (isset($_GET["lamin"]) && isset($_GET["lomin"]) && isset($_GET["lamax"]) && isset($_GET["lomax"])) {
         $url .= "?lamin=" . $_GET["lamin"] . "&lomin=" . $_GET["lomin"] . "&lamax=" . $_GET["lamax"] . "&lomax=" . $_GET["lomax"];
     }
-    $headers = [];
+    echo fetchWithAuth($url);
 }
-
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-if (!empty($headers)) {
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-}
-$data = curl_exec($ch);
-curl_close($ch);
-echo $data;

@@ -485,6 +485,15 @@ code, .mono {
   animation: pulse 2s ease-in-out infinite;
 }
 
+.bottom-stat.demo {
+  color: var(--text-muted);
+}
+
+.bottom-stat.demo .demo-icon {
+  color: #ef4444;
+  animation: pulse 2s ease-in-out infinite;
+}
+
 body.light .airport-tooltip {
   background: rgba(255, 255, 255, 0.95) !important;
   border: 1px solid rgba(37, 99, 235, 0.2) !important;

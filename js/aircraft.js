@@ -119,9 +119,7 @@ const AircraftManager = {
     if (marker && data) {
       marker.setIcon(this.createIcon(data.heading, true, false));
 
-      map.flyTo([data.lat, data.lng], Math.max(map.getZoom(), 8), {
-        duration: 1
-      });
+      map.panTo([data.lat, data.lng], { animate: true, duration: 0.5 });
     }
 
     this.markers.forEach((m, id) => {

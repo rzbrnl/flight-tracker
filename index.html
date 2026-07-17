@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Code:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=15" />
+    <link rel="stylesheet" href="css/style.css?v=16" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>" />
   </head>
   <body>
@@ -141,13 +141,14 @@
     <!-- Side Panel -->
     <aside id="sidebar" class="hidden">
       <div class="sidebar-header">
-        <span style="font-size: 13px; color: var(--text-muted);">Detalles del Vuelo</span>
+        <span style="font-size: 13px; color: var(--text-muted);" id="sidebar-title">Detalles del Vuelo</span>
         <button id="close-sidebar" class="close-btn">
           <svg class="icon" width="14" height="14"><use href="#icon-close"></use></svg>
         </button>
       </div>
 
-      <div class="flight-card">
+      <!-- Flight Info Section -->
+      <div id="flight-route-section" class="flight-card">
         <div class="flight-route">
           <div>
             <div class="airport-code" id="origin-code">---</div>
@@ -223,6 +224,56 @@
           </div>
         </div>
       </div>
+
+      <!-- Airport Info Section -->
+      <div id="airport-info-section" class="flight-card" style="display: none;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <svg class="icon" width="48" height="48" style="color: var(--accent); margin-bottom: 12px;"><use href="#icon-airport"></use></svg>
+          <div class="airport-code" id="airport-iata" style="font-size: 36px;">---</div>
+          <div class="airport-name" id="airport-name-full" style="font-size: 14px; margin-top: 4px;">---</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-altitude"></use></svg>
+              Elevación
+            </div>
+            <div class="stat-value" id="airport-elevation">--- m</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
+              Latitud
+            </div>
+            <div class="stat-value" id="airport-lat">---°</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
+              Longitud
+            </div>
+            <div class="stat-value" id="airport-lng">---°</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">
+              <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
+              Vuelos
+            </div>
+            <div class="stat-value" id="airport-flights">---</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <button class="more-info-btn" onclick="document.getElementById('airport-weather').style.display = document.getElementById('airport-weather').style.display === 'none' ? 'block' : 'none'">
+            <svg class="icon" width="14" height="14"><use href="#icon-info"></use></svg>
+            Clima y METAR
+          </button>
+          <div id="airport-weather" style="display: none; margin-top: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);">
+            <p style="color: var(--text-muted); font-size: 13px;">Datos de clima no disponibles en tiempo real.</p>
+          </div>
+        </div>
+      </div>
     </aside>
 
     <!-- Bottom Bar -->
@@ -237,16 +288,16 @@
         <span class="value">20</span>
         <span>aeropuertos</span>
       </div>
-      <div class="bottom-stat live">
+      <div class="bottom-stat live" id="status-indicator">
         <svg class="icon live-icon" width="14" height="14"><use href="#icon-live"></use></svg>
         <span class="value" id="data-source">En vivo</span>
       </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/api.js?v=15"></script>
-    <script src="js/aircraft.js?v=15"></script>
-    <script src="js/map.js?v=15"></script>
-    <script src="js/app.js?v=15"></script>
+    <script src="js/api.js?v=16"></script>
+    <script src="js/aircraft.js?v=16"></script>
+    <script src="js/map.js?v=16"></script>
+    <script src="js/app.js?v=16"></script>
   </body>
 </html>

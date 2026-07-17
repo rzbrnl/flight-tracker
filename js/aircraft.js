@@ -11,7 +11,8 @@ const AircraftManager = {
 
   createIcon(heading, isSelected, isDimmed) {
     const rotation = heading || 0;
-    let color = '#ffffff';
+    const isLight = document.body.classList.contains('light');
+    let color = isLight ? '#1a1a1a' : '#ffffff';
     let size = 20;
     let opacity = 1;
 

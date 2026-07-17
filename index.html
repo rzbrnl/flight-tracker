@@ -3,21 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Flight Tracker</title>
+    <title>SkyView — Rastreo de Vuelos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Code:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=13" />
+    <link rel="stylesheet" href="css/style.css?v=15" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>" />
   </head>
   <body>
     <!-- SVG Sprites -->
     <svg style="display: none;">
-      <!-- Logo airplane -->
-      <symbol id="icon-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4.41712 11.9183L7.73859 9.89656C8.29597 9.55783 8.57467 9.38846 8.76705 9.15616C9.59962 8.15082 8.86644 6.66595 8.99059 5.49686C9.1191 4.28671 10.2731 2.63158 11.4364 2.11845C11.7944 1.96052 12.2051 1.96052 12.5631 2.11845C13.7264 2.63158 14.8804 4.28671 15.0089 5.49686C15.1331 6.66595 14.3999 8.15082 15.2325 9.15616C15.4248 9.38846 15.7035 9.55783 16.2609 9.89656L19.5827 11.9182C20.5993 12.5369 20.9998 13.1973 20.9998 14.4395C20.9998 15.1156 20.7006 15.2968 20.0973 15.1588L14.2725 13.8261L14.0109 16.1149C13.9161 16.9448 13.8687 17.3598 14.0058 17.7398C14.327 18.63 15.4173 19.3591 16.0832 20.0066C16.4513 20.3644 16.8529 21.3934 16.4333 21.8613C16.1742 22.1503 15.7533 21.9157 15.4637 21.803L12.675 20.7184C12.3416 20.5887 12.1748 20.5239 11.9998 20.5239C11.8247 20.5239 11.6579 20.5887 11.3245 20.7184L8.53584 21.803C8.24619 21.9157 7.82534 22.1503 7.56625 21.8613C7.1466 21.3934 7.54825 20.3644 7.91628 20.0066C8.5822 19.3591 9.67255 18.63 9.9937 17.7398C10.1308 17.3598 10.0834 16.9448 9.98857 16.1149L9.72703 13.8261L3.90259 15.1587C3.29902 15.2968 2.99982 15.1155 3.00001 14.4391C3.00034 13.1971 3.4007 12.537 4.41712 11.9183Z"></path>
-      </symbol>
       <!-- Airport -->
       <symbol id="icon-airport" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20.1228 6H3.87715C3.39271 6 3 6.39271 3 6.87715C3 6.95865 3.01136 7.03976 3.03375 7.11812L4.17111 11.0989C4.57006 12.4952 4.76954 13.1934 5.30421 13.5967C5.83888 14 6.56499 14 8.01721 14H15.9828C17.435 14 18.1611 14 18.6958 13.5967C19.2305 13.1934 19.4299 12.4952 19.8289 11.0989L20.9663 7.11812C20.9886 7.03976 21 6.95865 21 6.87715C21 6.39271 20.6073 6 20.1228 6Z"></path>
@@ -88,27 +84,52 @@
         <path d="M16.5 16C17.5 15 18 13.5 18 12C18 10.5 17.5 9 16.5 8"></path>
         <path d="M19.5 18C21 16.5 22 14.5 22 12C22 9.5 21 7.5 19.5 6"></path>
       </symbol>
+      <!-- Sun -->
+      <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2V4"></path>
+        <path d="M12 20V22"></path>
+        <path d="M4.93 4.93L6.34 6.34"></path>
+        <path d="M17.66 17.66L19.07 19.07"></path>
+        <path d="M2 12H4"></path>
+        <path d="M20 12H22"></path>
+        <path d="M6.34 17.66L4.93 19.07"></path>
+        <path d="M19.07 4.93L17.66 6.34"></path>
+      </symbol>
+      <!-- Moon -->
+      <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </symbol>
+      <!-- Info -->
+      <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 16V12"></path>
+        <path d="M12 8H12.01"></path>
+      </symbol>
     </svg>
 
     <!-- Top Bar -->
     <header id="topbar">
       <div class="logo">
-        <svg class="icon" width="20" height="20"><use href="#icon-logo"></use></svg>
         <span>SkyView</span>
       </div>
 
       <div class="search-wrapper">
         <div class="search-box">
           <svg class="icon search-icon" width="14" height="14"><use href="#icon-search"></use></svg>
-          <input type="text" id="search" placeholder="Search flights, airports..." autocomplete="off" />
+          <input type="text" id="search" placeholder="Buscar vuelos, aeropuertos..." autocomplete="off" />
         </div>
       </div>
 
       <div class="top-actions">
-        <button class="top-btn" id="btn-filters" title="Filters">
+        <button class="top-btn" id="btn-filters" title="Filtros">
           <svg class="icon" width="18" height="18"><use href="#icon-filter"></use></svg>
         </button>
-        <button class="top-btn" id="btn-settings" title="Settings">
+        <button class="top-btn" id="btn-theme" title="Cambiar tema">
+          <svg class="icon icon-sun" width="18" height="18"><use href="#icon-sun"></use></svg>
+          <svg class="icon icon-moon" width="18" height="18" style="display:none;"><use href="#icon-moon"></use></svg>
+        </button>
+        <button class="top-btn" id="btn-settings" title="Configuración">
           <svg class="icon" width="18" height="18"><use href="#icon-settings"></use></svg>
         </button>
       </div>
@@ -120,7 +141,7 @@
     <!-- Side Panel -->
     <aside id="sidebar" class="hidden">
       <div class="sidebar-header">
-        <span style="font-size: 13px; color: var(--text-muted);">Flight Details</span>
+        <span style="font-size: 13px; color: var(--text-muted);">Detalles del Vuelo</span>
         <button id="close-sidebar" class="close-btn">
           <svg class="icon" width="14" height="14"><use href="#icon-close"></use></svg>
         </button>
@@ -130,14 +151,14 @@
         <div class="flight-route">
           <div>
             <div class="airport-code" id="origin-code">---</div>
-            <div class="airport-name" id="origin-name">Origin</div>
+            <div class="airport-name" id="origin-name">Origen</div>
           </div>
           <div class="route-line">
-            <svg class="icon" width="12" height="12"><use href="#icon-logo"></use></svg>
+            <svg class="icon" width="12" height="12"><use href="#icon-airport"></use></svg>
           </div>
           <div style="text-align: right;">
             <div class="airport-code" id="dest-code">---</div>
-            <div class="airport-name" id="dest-name">Destination</div>
+            <div class="airport-name" id="dest-name">Destino</div>
           </div>
         </div>
 
@@ -151,21 +172,21 @@
           <div class="stat-item">
             <div class="stat-label">
               <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
-              Speed
+              Velocidad
             </div>
             <div class="stat-value" id="velocity">--- km/h</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">
               <svg class="icon" width="12" height="12"><use href="#icon-altitude"></use></svg>
-              Altitude
+              Altitud
             </div>
             <div class="stat-value" id="altitude">--- m</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">
               <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
-              Heading
+              Dirección
             </div>
             <div class="stat-value" id="heading">---°</div>
           </div>
@@ -179,8 +200,8 @@
         </div>
 
         <button class="more-info-btn" id="btn-more-info">
-          <svg class="icon" width="14" height="14"><use href="#icon-ticket"></use></svg>
-          More information
+          <svg class="icon" width="14" height="14"><use href="#icon-info"></use></svg>
+          Más información
         </button>
 
         <div id="advanced-info" style="display: none; margin-top: 12px;">
@@ -207,25 +228,25 @@
     <!-- Bottom Bar -->
     <footer id="bottombar">
       <div class="bottom-stat">
-        <svg class="icon" width="14" height="14"><use href="#icon-logo"></use></svg>
+        <svg class="icon" width="14" height="14"><use href="#icon-airport"></use></svg>
         <span class="value" id="plane-count">0</span>
-        <span>flights</span>
+        <span>vuelos</span>
       </div>
       <div class="bottom-stat">
         <svg class="icon" width="14" height="14"><use href="#icon-airport"></use></svg>
         <span class="value">20</span>
-        <span>airports</span>
+        <span>aeropuertos</span>
       </div>
       <div class="bottom-stat live">
         <svg class="icon live-icon" width="14" height="14"><use href="#icon-live"></use></svg>
-        <span class="value" id="data-source">Live</span>
+        <span class="value" id="data-source">En vivo</span>
       </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/api.js?v=13"></script>
-    <script src="js/aircraft.js?v=13"></script>
-    <script src="js/map.js?v=13"></script>
-    <script src="js/app.js?v=13"></script>
+    <script src="js/api.js?v=15"></script>
+    <script src="js/aircraft.js?v=15"></script>
+    <script src="js/map.js?v=15"></script>
+    <script src="js/app.js?v=15"></script>
   </body>
 </html>

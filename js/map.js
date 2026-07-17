@@ -3,8 +3,8 @@ const FlightMap = {
 
   init() {
     this.map = L.map('map', {
-      center: [40.4168, -3.7038],
-      zoom: 6,
+      center: [27.4869, -109.9409],
+      zoom: 8,
       zoomControl: true,
       attributionControl: true
     });

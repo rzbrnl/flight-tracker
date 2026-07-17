@@ -1,0 +1,67 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const map = FlightMap.init();
+  const sidebar = document.getElementById('sidebar');
+  const closeSidebar = document.getElementById('close-sidebar');
+  const statsEl = document.getElementById('stats');
+
+  function updateFlightInfo(flight) {
+    document.getElementById('callsign').textContent = flight.callsign;
+    document.getElementById('country').textContent = flight.originCountry;
+    document.getElementById('icao24').textContent = flight.icao24;
+    document.getElementById('altitude').textContent =
+      flight.altitude ? `${Math.round(flight.altitude)} m` : 'En tierra';
+    document.getElementById('velocity').textContent =
+      flight.velocity ? `${Math.round(flight.velocity * 3.6)} km/h` : '---';
+    document.getElementById('heading').textContent =
+      flight.heading !== null ? `${Math.round(flight.heading)}°` : '---';
+    document.getElementById('vertical-rate').textContent =
+      flight.verticalRate !== null ? `${flight.verticalRate.toFixed(1)} m/s` : '---';
+    document.getElementById('squawk').textContent = flight.squawk || '---';
+  }
+
+  function onAircraftSelect(flight) {
+    updateFlightInfo(flight);
+    sidebar.classList.remove('hidden');
+    sidebar.classList.add('visible');
+  }
+
+  closeSidebar.addEventListener('click', () => {
+    sidebar.classList.remove('visible');
+    sidebar.classList.add('hidden');
+    AircraftManager.clearSelection(map);
+  });
+
+  map.on('click', (e) => {
+    if (e.originalEvent.target.closest('.aircraft-marker')) return;
+    sidebar.classList.remove('visible');
+    sidebar.classList.add('hidden');
+    AircraftManager.clearSelection(map);
+  });
+
+  async function refreshFlights() {
+    const flights = await FlightAPI.getFlights();
+
+    AircraftManager.updateMarkers(flights, map, onAircraftSelect);
+
+    document.getElementById('plane-count').textContent =
+      flights.filter(f => !f.onGround).length;
+
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    if (FlightAPI.isUsingDemo) {
+      document.getElementById('data-source').textContent = 'Demo';
+    } else {
+      document.getElementById('data-source').textContent = 'Live';
+    }
+
+    if (AircraftManager.selectedIcao24) {
+      const selected = flights.find(f => f.icao24 === AircraftManager.selectedIcao24);
+      if (selected) updateFlightInfo(selected);
+    }
+  }
+
+  refreshFlights();
+  setInterval(refreshFlights, 10000);
+});

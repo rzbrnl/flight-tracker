@@ -11,6 +11,7 @@ const DEMO_FLIGHTS = [
 
 const FlightAPI = {
   isUsingDemo: false,
+  lastSuccess: 0,
 
   async getFlights(bounds) {
     try {
@@ -21,16 +22,29 @@ const FlightAPI = {
       }
 
       const response = await fetch(url);
+      const text = await response.text();
 
-      if (!response.ok) throw new Error('API error');
+      if (!response.ok || text.startsWith('Too many') || text.startsWith('<')) {
+        throw new Error('Rate limited or error');
+      }
 
-      const data = await response.json();
+      const data = JSON.parse(text);
+
+      if (!data.states) {
+        throw new Error('No states in response');
+      }
+
       this.isUsingDemo = false;
-      return this.parseFlights(data.states || []);
+      this.lastSuccess = Date.now();
+      return this.parseFlights(data.states);
     } catch (error) {
-      console.warn('OpenSky API unavailable, using demo data:', error.message);
-      this.isUsingDemo = true;
-      return DEMO_FLIGHTS;
+      console.warn('API issue, using demo data:', error.message);
+
+      if (Date.now() - this.lastSuccess > 60000) {
+        this.isUsingDemo = true;
+      }
+
+      return this.isUsingDemo ? DEMO_FLIGHTS : [];
     }
   },
 

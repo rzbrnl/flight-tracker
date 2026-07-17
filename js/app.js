@@ -169,17 +169,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('callsign').textContent = flight.callsign || '---';
     document.getElementById('country').textContent = flight.originCountry || '---';
-    document.getElementById('icao24').textContent = flight.icao24;
+
+    const fData = data || flight;
     document.getElementById('velocity').textContent =
-      data && data.velocity ? `${Math.round(data.velocity * 3.6)} km/h` : '---';
+      fData.velocity ? `${Math.round(fData.velocity * 3.6)} km/h` : '---';
     document.getElementById('altitude').textContent =
-      data && data.altitude ? `${Math.round(data.altitude)} m` : 'En tierra';
+      fData.altitude ? `${Math.round(fData.altitude)} m` : 'En tierra';
     document.getElementById('heading').textContent =
-      data && data.heading !== null ? `${Math.round(data.heading)}°` : '---';
+      fData.heading !== null ? `${Math.round(fData.heading)}°` : '---';
     document.getElementById('vertical-rate').textContent =
-      data && data.verticalRate !== null ? `${data.verticalRate.toFixed(1)} m/s` : '---';
+      fData.verticalRate !== null ? `${fData.verticalRate.toFixed(1)} m/s` : '---';
     document.getElementById('squawk').textContent =
-      data && data.squawk ? data.squawk : '---';
+      fData.squawk || '---';
+    document.getElementById('icao24').textContent = fData.icao24 || '---';
+
+    const extraInfo = document.getElementById('flight-extra-info');
+    if (fData.airline) {
+      extraInfo.style.display = 'block';
+      document.getElementById('flight-airline').textContent = fData.airline;
+      document.getElementById('flight-aircraft').textContent = fData.aircraft || '---';
+      document.getElementById('flight-registration').textContent = fData.registration || '---';
+      document.getElementById('flight-scheduled-dep').textContent = fData.scheduledDep || '---';
+      document.getElementById('flight-scheduled-arr').textContent = fData.scheduledArr || '---';
+      document.getElementById('flight-actual-dep').textContent = fData.actualDep || '---';
+      document.getElementById('flight-estimated-arr').textContent = fData.estimatedArr || '---';
+      document.getElementById('flight-status').textContent = fData.status || '---';
+
+      const statusEl = document.getElementById('flight-status');
+      if (fData.status === 'En vuelo') {
+        statusEl.style.color = '#22c55e';
+      } else if (fData.status === 'Retrasado') {
+        statusEl.style.color = '#ef4444';
+      } else {
+        statusEl.style.color = 'var(--accent)';
+      }
+
+      if (fData.origin) {
+        document.getElementById('origin-code').textContent = fData.origin.iata;
+        document.getElementById('origin-name').textContent = fData.origin.name;
+      }
+      if (fData.destination) {
+        document.getElementById('dest-code').textContent = fData.destination.iata;
+        document.getElementById('dest-name').textContent = fData.destination.name;
+      }
+    } else {
+      extraInfo.style.display = 'none';
+    }
   }
 
   function onAircraftSelect(flight) {

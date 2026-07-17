@@ -67,7 +67,25 @@ document.addEventListener('DOMContentLoaded', () => {
     airportMarkers.push(marker);
   });
 
-  async function showAirportInfo(airport) {
+    const COVER_MAP = {
+      'SKC': 'Despejado',
+      'CLR': 'Despejado',
+      'FEW': 'Pocas nubes',
+      'SCT': 'Nubes dispersas',
+      'BKN': 'Nublado',
+      'OVC': 'Cubierto',
+      'NSC': 'Sin nubes significativas',
+      'NCD': 'Sin nubes detectadas'
+    };
+
+    const CAT_MAP = {
+      'VFR': 'VFR - Buenas condiciones',
+      'MVFR': 'MVFR - Condiciones marginales',
+      'IFR': 'IFR - Malas condiciones',
+      'LIFR': 'LIFR - Condiciones peligrosas'
+    };
+
+    async function showAirportInfo(airport) {
     document.getElementById('sidebar-title').textContent = 'Información del Aeropuerto';
     document.getElementById('flight-route-section').style.display = 'none';
     document.getElementById('flight-details-section').style.display = 'none';
@@ -97,12 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('weather-temp').textContent = metar.temp !== undefined ? `${metar.temp}°C` : '---';
           document.getElementById('weather-wind').textContent = metar.wdir !== undefined ? `${metar.wdir}° ${metar.wspd} kts` : '---';
           document.getElementById('weather-visibility').textContent = metar.visib || '---';
-          document.getElementById('weather-condition').textContent = metar.cover || '---';
+          document.getElementById('weather-condition').textContent = COVER_MAP[metar.cover] || metar.cover || '---';
 
           const cat = metar.fltCat || '---';
           const catColors = { VFR: '#22c55e', MVFR: '#3b82f6', IFR: '#ef4444', LIFR: '#dc2626' };
           const catEl = document.getElementById('weather-category');
-          catEl.textContent = cat;
+          catEl.textContent = CAT_MAP[cat] || cat;
           catEl.style.color = catColors[cat] || 'var(--text)';
         }
       }

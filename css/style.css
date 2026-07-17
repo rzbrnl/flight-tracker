@@ -148,21 +148,6 @@ code, .mono {
   color: white;
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #8b5cf6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
-  margin-left: 8px;
-  cursor: pointer;
-}
-
 /* ===== MAP ===== */
 #map {
   position: absolute;
@@ -197,18 +182,23 @@ code, .mono {
 }
 
 .airport-tooltip {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: 'Google Sans', sans-serif;
-  font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(9, 9, 11, 0.95) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  color: var(--text) !important;
+  font-family: 'Google Sans', sans-serif !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.airport-tooltip::before {
+  border-top-color: rgba(9, 9, 11, 0.95) !important;
 }
 
 .airport-tooltip b {
-  color: var(--accent);
+  color: var(--accent) !important;
+  font-weight: 600;
 }
 
 /* ===== SIDE PANEL ===== */

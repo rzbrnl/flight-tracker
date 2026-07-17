@@ -2,7 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const map = FlightMap.init();
   const sidebar = document.getElementById('sidebar');
   const closeSidebar = document.getElementById('close-sidebar');
-  const statsEl = document.getElementById('stats');
+  let moveTimeout = null;
+
+  function getBounds() {
+    const b = map.getBounds();
+    return {
+      north: b.getNorth(),
+      south: b.getSouth(),
+      east: b.getEast(),
+      west: b.getWest()
+    };
+  }
 
   function updateFlightInfo(flight) {
     document.getElementById('callsign').textContent = flight.callsign;
@@ -39,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function refreshFlights() {
-    const flights = await FlightAPI.getFlights();
+    const bounds = getBounds();
+    const flights = await FlightAPI.getFlights(bounds);
 
     AircraftManager.updateMarkers(flights, map, onAircraftSelect);
 
@@ -62,6 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  map.on('moveend', () => {
+    clearTimeout(moveTimeout);
+    moveTimeout = setTimeout(refreshFlights, 500);
+  });
+
   refreshFlights();
-  setInterval(refreshFlights, 10000);
+  setInterval(refreshFlights, 30000);
 });

@@ -12,9 +12,15 @@ const DEMO_FLIGHTS = [
 const FlightAPI = {
   isUsingDemo: false,
 
-  async getFlights() {
+  async getFlights(bounds) {
     try {
-      const response = await fetch('/api.php');
+      let url = '/api.php';
+      if (bounds) {
+        const b = bounds;
+        url += `?lamin=${b.south}&lomin=${b.west}&lamax=${b.north}&lomax=${b.east}`;
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) throw new Error('API error');
 

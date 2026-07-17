@@ -158,16 +158,22 @@ const FlightAPI = {
 
   async getFlightDetails(callsign) {
     try {
+      if (!callsign || callsign.trim() === '' || callsign === '---') return null;
+
+      const cleanCallsign = callsign.trim();
       const today = new Date().toISOString().split('T')[0];
       const response = await fetch(
-        `/api.php?flight=${encodeURIComponent(callsign)}&date=${today}`,
+        `/api.php?flight=${encodeURIComponent(cleanCallsign)}&date=${today}`,
         { signal: AbortSignal.timeout(8000) }
       );
 
       if (!response.ok) return null;
 
-      const data = await response.json();
-      if (data && data.length > 0) {
+      const text = await response.text();
+      if (!text || text.trim() === '' || text.trim() === '[]') return null;
+
+      const data = JSON.parse(text);
+      if (Array.isArray(data) && data.length > 0) {
         return data[0];
       }
       return null;

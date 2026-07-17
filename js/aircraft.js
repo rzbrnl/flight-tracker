@@ -132,8 +132,9 @@ const AircraftManager = {
       const response = await fetch(`/api.php?track=${icao24}`);
       if (response.ok) {
         const text = await response.text();
+        if (!text || text.trim() === '') return;
         const track = JSON.parse(text);
-        if (track.path && track.path.length > 0) {
+        if (track && track.path && track.path.length > 0) {
           const path = track.path
             .filter(p => p[1] !== null && p[2] !== null)
             .map(p => [p[1], p[2]]);
@@ -151,7 +152,8 @@ const AircraftManager = {
         }
       }
     } catch (e) {
-      console.warn('Track fetch failed:', e);
+      // Track not available for this aircraft
+    }
     }
 
     if (data && onSelect) {

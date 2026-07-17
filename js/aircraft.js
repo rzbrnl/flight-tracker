@@ -1,11 +1,9 @@
 const AircraftManager = {
   markers: new Map(),
-  trails: new Map(),
-  lastPositions: new Map(),
-  flightData: new Map(),
+  trailLines: new Map(),
   selectedIcao24: null,
   lastApiTime: Date.now(),
-  map: null,
+  flightData: new Map(),
 
   createIcon(heading, isSelected) {
     const rotation = heading || 0;
@@ -40,8 +38,7 @@ const AircraftManager = {
     return [lat2 * 180 / Math.PI, lng2 * 180 / Math.PI];
   },
 
-  updateFromApi(flights, map, onSelect) {
-    this.map = map;
+  updateFromApi(flights, map) {
     const now = Date.now();
     this.lastApiTime = now;
     const currentIcao24s = new Set(flights.map(f => f.icao24));
@@ -50,16 +47,10 @@ const AircraftManager = {
       if (!currentIcao24s.has(icao24)) {
         map.removeLayer(marker);
         this.markers.delete(icao24);
-        if (this.trails.has(icao24)) {
-          map.removeLayer(this.trails.get(icao24));
-          this.trails.delete(icao24);
-        }
       }
     });
 
     flights.forEach(flight => {
-      const isSelected = flight.icao24 === this.selectedIcao24;
-
       this.flightData.set(flight.icao24, {
         lat: flight.latitude,
         lng: flight.longitude,
@@ -69,35 +60,13 @@ const AircraftManager = {
         time: now
       });
 
-      if (!this.lastPositions.has(flight.icao24)) {
-        this.lastPositions.set(flight.icao24, []);
-      }
-      const hist = this.lastPositions.get(flight.icao24);
-      hist.push([flight.latitude, flight.longitude]);
-      if (hist.length > 30) hist.shift();
-
-      if (!this.trails.has(flight.icao24) && hist.length > 1) {
-        const trailLine = L.polyline(hist, {
-          color: '#ffffff',
-          weight: 1,
-          opacity: 0.3
-        }).addTo(map);
-        this.trails.set(flight.icao24, trailLine);
-      } else if (this.trails.has(flight.icao24)) {
-        this.trails.get(flight.icao24).setLatLngs(hist);
-      }
-
       const existing = this.markers.get(flight.icao24);
       if (existing) {
         existing.setLatLng([flight.latitude, flight.longitude]);
-        existing.setIcon(this.createIcon(flight.heading, isSelected));
+        existing.setIcon(this.createIcon(flight.heading, flight.icao24 === this.selectedIcao24));
       } else {
         const marker = L.marker([flight.latitude, flight.longitude], {
-          icon: this.createIcon(flight.heading, isSelected)
-        });
-        marker.on('click', () => {
-          this.selectedIcao24 = flight.icao24;
-          onSelect(flight);
+          icon: this.createIcon(flight.heading, false)
         });
         marker.addTo(map);
         this.markers.set(flight.icao24, marker);
@@ -105,8 +74,57 @@ const AircraftManager = {
     });
   },
 
+  async selectAircraft(icao24, map, onSelect) {
+    this.clearSelection();
+
+    if (this.selectedIcao24 === icao24) {
+      this.selectedIcao24 = null;
+      return;
+    }
+
+    this.selectedIcao24 = icao24;
+
+    const marker = this.markers.get(icao24);
+    if (marker) {
+      marker.setIcon(this.createIcon(this.flightData.get(icao24)?.heading || 0, true));
+    }
+
+    try {
+      const response = await fetch(`/api.php?track=${icao24}`);
+      if (response.ok) {
+        const track = await response.json();
+        if (track.path && track.path.length > 0) {
+          const path = track.path
+            .filter(p => p[1] !== null && p[2] !== null)
+            .map(p => [p[1], p[2]]);
+
+          if (path.length > 1) {
+            const trailLine = L.polyline(path, {
+              color: '#00d4ff',
+              weight: 2,
+              opacity: 0.6
+            }).addTo(map);
+            this.trailLines.set(icao24, trailLine);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Track fetch failed:', e);
+    }
+
+    const data = this.flightData.get(icao24);
+    if (data) {
+      onSelect({
+        icao24,
+        latitude: data.lat,
+        longitude: data.lng,
+        heading: data.heading,
+        velocity: data.velocity
+      });
+    }
+  },
+
   animate() {
-    if (!this.map) return;
     const now = Date.now();
     const elapsed = (now - this.lastApiTime) / 1000;
 
@@ -123,22 +141,6 @@ const AircraftManager = {
         if (marker) {
           marker.setLatLng(newPos);
         }
-        const trail = this.trails.get(icao24);
-        if (trail) {
-          const pts = trail.getLatLngs();
-          if (pts.length > 0) {
-            const lastPt = pts[pts.length - 1];
-            const lastLat = lastPt.lat || lastPt[0];
-            const lastLng = lastPt.lng || lastPt[1];
-            if (Math.abs(newPos[0] - lastLat) > 0.0001 || Math.abs(newPos[1] - lastLng) > 0.0001) {
-              trail.addLatLng(newPos);
-              const pts2 = trail.getLatLngs();
-              if (pts2.length > 30) {
-                trail.setLatLngs(pts2.slice(-30));
-              }
-            }
-          }
-        }
       }
     });
 
@@ -153,11 +155,12 @@ const AircraftManager = {
     if (this.selectedIcao24) {
       const marker = this.markers.get(this.selectedIcao24);
       if (marker) {
-        marker.setIcon(this.createIcon(marker.options?.heading || 0, false));
+        marker.setIcon(this.createIcon(this.flightData.get(this.selectedIcao24)?.heading || 0, false));
       }
-      const trail = this.trails.get(this.selectedIcao24);
+      const trail = this.trailLines.get(this.selectedIcao24);
       if (trail) {
-        trail.setStyle({ color: '#ffffff', weight: 1, opacity: 0.3 });
+        this.trailLines.get(this.selectedIcao24).map?.removeLayer(trail);
+        this.trailLines.delete(this.selectedIcao24);
       }
       this.selectedIcao24 = null;
     }

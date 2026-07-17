@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Code:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=18" />
+    <link rel="stylesheet" href="css/style.css?v=19" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'/></svg>" />
   </head>
   <body>
@@ -250,33 +250,57 @@
           <div class="stat-item">
             <div class="stat-label">
               <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
-              Latitud
+              Coordenadas
             </div>
-            <div class="stat-value" id="airport-lat">---°</div>
+            <div class="stat-value" id="airport-lat" style="font-size: 13px;">---°</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">
               <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
               Longitud
             </div>
-            <div class="stat-value" id="airport-lng">---°</div>
+            <div class="stat-value" id="airport-lng" style="font-size: 13px;">---°</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">
-              <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
-              Vuelos
+              <svg class="icon" width="12" height="12"><use href="#icon-live"></use></svg>
+              Categoría
             </div>
-            <div class="stat-value" id="airport-flights">---</div>
+            <div class="stat-value" id="weather-category">---</div>
           </div>
         </div>
 
         <div style="margin-top: 16px;">
-          <button class="more-info-btn" onclick="document.getElementById('airport-weather').style.display = document.getElementById('airport-weather').style.display === 'none' ? 'block' : 'none'">
-            <svg class="icon" width="14" height="14"><use href="#icon-info"></use></svg>
-            Clima y METAR
-          </button>
-          <div id="airport-weather" style="display: none; margin-top: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);">
-            <p style="color: var(--text-muted); font-size: 13px;">Datos de clima no disponibles en tiempo real.</p>
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Clima en tiempo real</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-speed"></use></svg>
+                Temperatura
+              </div>
+              <div class="stat-value" id="weather-temp">---°C</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-compass"></use></svg>
+                Viento
+              </div>
+              <div class="stat-value" id="weather-wind" style="font-size: 13px;">--- kts</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-altitude"></use></svg>
+                Visibilidad
+              </div>
+              <div class="stat-value" id="weather-visibility">---</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">
+                <svg class="icon" width="12" height="12"><use href="#icon-live"></use></svg>
+                Condición
+              </div>
+              <div class="stat-value" id="weather-condition">---</div>
+            </div>
           </div>
         </div>
       </div>
@@ -301,9 +325,9 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/api.js?v=18"></script>
-    <script src="js/aircraft.js?v=18"></script>
-    <script src="js/map.js?v=18"></script>
-    <script src="js/app.js?v=18"></script>
+    <script src="js/api.js?v=19"></script>
+    <script src="js/aircraft.js?v=19"></script>
+    <script src="js/map.js?v=19"></script>
+    <script src="js/app.js?v=19"></script>
   </body>
 </html>

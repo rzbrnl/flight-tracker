@@ -1,20 +1,20 @@
 const AIRPORTS = [
-  { iata: "CEN", name: "Ciudad Obregón", lat: 27.3926, lng: -109.8329, elevation: "62 m" },
-  { iata: "HMO", name: "Hermosillo", lat: 29.0959, lng: -111.0479, elevation: "191 m" },
-  { iata: "GYM", name: "Guaymas", lat: 27.9689, lng: -110.9255, elevation: "28 m" },
-  { iata: "CJS", name: "Ciudad Juárez", lat: 31.6361, lng: -106.4286, elevation: "1,187 m" },
-  { iata: "TIJ", name: "Tijuana", lat: 32.5411, lng: -116.9700, elevation: "149 m" },
-  { iata: "SJD", name: "San José del Cabo", lat: 23.1518, lng: -109.7215, elevation: "37 m" },
-  { iata: "LMM", name: "Los Mochis", lat: 25.6852, lng: -109.0811, elevation: "3 m" },
-  { iata: "MTY", name: "Monterrey", lat: 25.7785, lng: -100.1069, elevation: "390 m" },
-  { iata: "GDL", name: "Guadalajara", lat: 20.5218, lng: -103.3106, elevation: "1,529 m" },
-  { iata: "MEX", name: "Ciudad de México", lat: 19.4363, lng: -99.0721, elevation: "2,250 m" },
-  { iata: "PHX", name: "Phoenix", lat: 33.4373, lng: -112.0078, elevation: "341 m" },
-  { iata: "LAX", name: "Los Ángeles", lat: 33.9416, lng: -118.4085, elevation: "38 m" },
-  { iata: "LAS", name: "Las Vegas", lat: 36.0840, lng: -115.1537, elevation: "512 m" },
-  { iata: "SAN", name: "San Diego", lat: 32.7338, lng: -117.1933, elevation: "5 m" },
-  { iata: "JFK", name: "Nueva York JFK", lat: 40.6413, lng: -73.7781, elevation: "4 m" },
-  { iata: "MIA", name: "Miami", lat: 25.7959, lng: -80.2870, elevation: "11 m" },
+  { iata: "CEN", icao: "MMCN", name: "Ciudad Obregón", lat: 27.3926, lng: -109.8329, elevation: "62 m" },
+  { iata: "HMO", icao: "MMHO", name: "Hermosillo", lat: 29.0959, lng: -111.0479, elevation: "191 m" },
+  { iata: "GYM", icao: "MMGM", name: "Guaymas", lat: 27.9689, lng: -110.9255, elevation: "28 m" },
+  { iata: "CJS", icao: "MMJC", name: "Ciudad Juárez", lat: 31.6361, lng: -106.4286, elevation: "1,187 m" },
+  { iata: "TIJ", icao: "MMTJ", name: "Tijuana", lat: 32.5411, lng: -116.9700, elevation: "149 m" },
+  { iata: "SJD", icao: "MMSD", name: "San José del Cabo", lat: 23.1518, lng: -109.7215, elevation: "37 m" },
+  { iata: "LMM", icao: "MMLM", name: "Los Mochis", lat: 25.6852, lng: -109.0811, elevation: "3 m" },
+  { iata: "MTY", icao: "MMMY", name: "Monterrey", lat: 25.7785, lng: -100.1069, elevation: "390 m" },
+  { iata: "GDL", icao: "MMGL", name: "Guadalajara", lat: 20.5218, lng: -103.3106, elevation: "1,529 m" },
+  { iata: "MEX", icao: "MMMX", name: "Ciudad de México", lat: 19.4363, lng: -99.0721, elevation: "2,250 m" },
+  { iata: "PHX", icao: "KPHX", name: "Phoenix", lat: 33.4373, lng: -112.0078, elevation: "341 m" },
+  { iata: "LAX", icao: "KLAX", name: "Los Ángeles", lat: 33.9416, lng: -118.4085, elevation: "38 m" },
+  { iata: "LAS", icao: "KLAS", name: "Las Vegas", lat: 36.0840, lng: -115.1537, elevation: "512 m" },
+  { iata: "SAN", icao: "KSAN", name: "San Diego", lat: 32.7338, lng: -117.1933, elevation: "5 m" },
+  { iata: "JFK", icao: "KJFK", name: "Nueva York JFK", lat: 40.6413, lng: -73.7781, elevation: "4 m" },
+  { iata: "MIA", icao: "KMIA", name: "Miami", lat: 25.7959, lng: -80.2870, elevation: "11 m" },
 ];
 
 const LIGHT_TILE = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     airportMarkers.push(marker);
   });
 
-  function showAirportInfo(airport) {
+  async function showAirportInfo(airport) {
     document.getElementById('sidebar-title').textContent = 'Información del Aeropuerto';
     document.getElementById('flight-route-section').style.display = 'none';
     document.getElementById('flight-details-section').style.display = 'none';
@@ -79,8 +79,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('airport-lat').textContent = airport.lat.toFixed(4) + '°';
     document.getElementById('airport-lng').textContent = airport.lng.toFixed(4) + '°';
 
+    document.getElementById('weather-temp').textContent = '---';
+    document.getElementById('weather-wind').textContent = '---';
+    document.getElementById('weather-visibility').textContent = '---';
+    document.getElementById('weather-condition').textContent = '---';
+    document.getElementById('weather-category').textContent = '---';
+
     sidebar.classList.remove('hidden');
     sidebar.classList.add('visible');
+
+    try {
+      const response = await fetch(`/api.php?weather=${airport.icao}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const metar = data[0];
+          document.getElementById('weather-temp').textContent = metar.temp !== undefined ? `${metar.temp}°C` : '---';
+          document.getElementById('weather-wind').textContent = metar.wdir !== undefined ? `${metar.wdir}° ${metar.wspd} kts` : '---';
+          document.getElementById('weather-visibility').textContent = metar.visib || '---';
+          document.getElementById('weather-condition').textContent = metar.cover || '---';
+
+          const cat = metar.fltCat || '---';
+          const catColors = { VFR: '#22c55e', MVFR: '#3b82f6', IFR: '#ef4444', LIFR: '#dc2626' };
+          const catEl = document.getElementById('weather-category');
+          catEl.textContent = cat;
+          catEl.style.color = catColors[cat] || 'var(--text)';
+        }
+      }
+    } catch (e) {
+      console.warn('Weather fetch failed:', e);
+    }
   }
 
   function toggleTheme() {

@@ -67,6 +67,27 @@ document.addEventListener('DOMContentLoaded', () => {
     airportMarkers.push(marker);
   });
 
+  const LocationControl = L.Control.extend({
+    options: { position: 'bottomright' },
+    onAdd: function(map) {
+      const btn = L.DomUtil.create('div');
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+      btn.style.cssText = 'background:rgba(15,15,26,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#a1a1aa;transition:all 200ms ease;';
+      btn.onmouseover = function() { this.style.color = '#fff'; this.style.background = 'rgba(255,255,255,0.08)'; };
+      btn.onmouseout = function() { this.style.color = '#a1a1aa'; this.style.background = 'rgba(15,15,26,0.85)'; };
+      L.DomEvent.disableClickPropagation(btn);
+      btn.onclick = function() {
+        map.locate({ setView: true, maxZoom: 10 });
+      };
+      return btn;
+    }
+  });
+  new LocationControl().addTo(map);
+
+  map.on('locationfound', function(e) {
+    L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
+  });
+
     const COVER_MAP = {
       'SKC': 'Despejado',
       'CLR': 'Despejado',

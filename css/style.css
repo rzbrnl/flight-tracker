@@ -489,7 +489,7 @@ code, .mono {
   color: var(--text-muted);
 }
 
-.bottom-stat.demo .demo-icon {
+.bottom-stat.demo .live-icon {
   color: #ef4444;
   animation: pulse 2s ease-in-out infinite;
 }

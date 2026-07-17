@@ -154,7 +154,6 @@ const AircraftManager = {
     } catch (e) {
       // Track not available for this aircraft
     }
-    }
 
     if (data && onSelect) {
       onSelect({

@@ -245,27 +245,29 @@ document.addEventListener('DOMContentLoaded', () => {
       data.aircraft = details.aircraft.model || '---';
       data.registration = details.aircraft.reg || '---';
     }
-    if (details.origin) {
+    if (details.departure && details.departure.airport) {
       data.origin = {
-        iata: details.origin.iata || details.origin.icao || '---',
-        name: details.origin.name || '---'
+        iata: details.departure.airport.iata || details.departure.airport.icao || '---',
+        name: details.departure.airport.name || '---'
       };
     }
-    if (details.destination) {
+    if (details.arrival && details.arrival.airport) {
       data.destination = {
-        iata: details.destination.iata || details.destination.icao || '---',
-        name: details.destination.name || '---'
+        iata: details.arrival.airport.iata || details.arrival.airport.icao || '---',
+        name: details.arrival.airport.name || '---'
       };
     }
-    if (details.scheduled) {
-      data.scheduledDep = details.scheduled.departure ? new Date(details.scheduled.departure).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
-      data.scheduledArr = details.scheduled.arrival ? new Date(details.scheduled.arrival).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+    if (details.departure) {
+      const schedDep = details.departure.scheduledTime?.local || details.departure.scheduledTime?.utc;
+      data.scheduledDep = schedDep ? this.formatTime(schedDep) : '---';
+      const actDep = details.departure.revisedTime?.local || details.departure.actualTime?.local;
+      data.actualDep = actDep ? this.formatTime(actDep) : '---';
     }
-    if (details.actual) {
-      data.actualDep = details.actual.departure ? new Date(details.actual.departure).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
-    }
-    if (details.estimated) {
-      data.estimatedArr = details.estimated.arrival ? new Date(details.estimated.arrival).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+    if (details.arrival) {
+      const schedArr = details.arrival.scheduledTime?.local || details.arrival.scheduledTime?.utc;
+      data.scheduledArr = schedArr ? this.formatTime(schedArr) : '---';
+      const estArr = details.arrival.predictedTime?.local || details.arrival.revisedTime?.local;
+      data.estimatedArr = estArr ? this.formatTime(estArr) : '---';
     }
 
     const statusMap = {
@@ -276,11 +278,23 @@ document.addEventListener('DOMContentLoaded', () => {
       'CANCELLED': 'Cancelado',
       'DELAYED': 'Retrasado',
       'DIVERTED': 'Desviado',
+      'EXPECTED': 'Esperado',
       'UNKNOWN': 'Desconocido'
     };
     data.status = statusMap[details.status] || details.status || 'En vuelo';
 
     updateFlightInfo({ icao24, callsign: data.callsign, originCountry: data.originCountry });
+  }
+
+  function formatTime(timeStr) {
+    if (!timeStr) return '---';
+    try {
+      const date = new Date(timeStr);
+      if (isNaN(date.getTime())) return timeStr.substring(11, 16) || '---';
+      return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '---';
+    }
   }
 
   closeSidebar.addEventListener('click', () => {

@@ -7,7 +7,7 @@ $ADB_KEY = "896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14";
 if (isset($_GET["flight"])) {
     $callsign = $_GET["flight"];
     $date = $_GET["date"] ?? date("Y-m-d");
-    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/date/{$date}/local";
+    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
     $headers = [
         "X-RapidAPI-Key: " . $ADB_KEY,
         "X-RapidAPI-Host: aerodatabox.p.rapidapi.com"

@@ -217,11 +217,70 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function onAircraftSelect(flight) {
+  async function onAircraftSelect(flight) {
     selectedAirport = null;
     updateFlightInfo(flight);
     sidebar.classList.remove('hidden');
     sidebar.classList.add('visible');
+
+    if (flight.callsign && flight.callsign !== '---') {
+      const details = await FlightAPI.getFlightDetails(flight.callsign);
+      if (details) {
+        updateFlightFromAeroDataBox(flight.icao24, details);
+      }
+    }
+  }
+
+  function updateFlightFromAeroDataBox(icao24, details) {
+    const data = AircraftManager.flightData.get(icao24);
+    if (!data) return;
+
+    if (details.airline) {
+      data.airline = details.airline.name || details.airline.icao || '---';
+    }
+    if (details.number) {
+      data.flightNumber = details.number.iata || details.number.icao || '---';
+    }
+    if (details.aircraft) {
+      data.aircraft = details.aircraft.model || '---';
+      data.registration = details.aircraft.reg || '---';
+    }
+    if (details.origin) {
+      data.origin = {
+        iata: details.origin.iata || details.origin.icao || '---',
+        name: details.origin.name || '---'
+      };
+    }
+    if (details.destination) {
+      data.destination = {
+        iata: details.destination.iata || details.destination.icao || '---',
+        name: details.destination.name || '---'
+      };
+    }
+    if (details.scheduled) {
+      data.scheduledDep = details.scheduled.departure ? new Date(details.scheduled.departure).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+      data.scheduledArr = details.scheduled.arrival ? new Date(details.scheduled.arrival).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+    }
+    if (details.actual) {
+      data.actualDep = details.actual.departure ? new Date(details.actual.departure).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+    }
+    if (details.estimated) {
+      data.estimatedArr = details.estimated.arrival ? new Date(details.estimated.arrival).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '---';
+    }
+
+    const statusMap = {
+      'SCHEDULED': 'Programado',
+      'ACTIVE': 'En vuelo',
+      'EN ROUTE': 'En vuelo',
+      'LANDED': 'Aterrizado',
+      'CANCELLED': 'Cancelado',
+      'DELAYED': 'Retrasado',
+      'DIVERTED': 'Desviado',
+      'UNKNOWN': 'Desconocido'
+    };
+    data.status = statusMap[details.status] || details.status || 'En vuelo';
+
+    updateFlightInfo({ icao24, callsign: data.callsign, originCountry: data.originCountry });
   }
 
   closeSidebar.addEventListener('click', () => {

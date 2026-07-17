@@ -115,6 +115,7 @@ const FlightAPI = {
   isUsingDemo: false,
   lastSuccess: 0,
   retryCount: 0,
+  ADB_KEY: '896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14',
 
   async getFlights(bounds) {
     try {
@@ -152,6 +153,26 @@ const FlightAPI = {
       }
 
       return this.isUsingDemo ? DEMO_FLIGHTS : [];
+    }
+  },
+
+  async getFlightDetails(callsign) {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await fetch(
+        `/api.php?flight=${encodeURIComponent(callsign)}&date=${today}`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return data[0];
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   },
 

@@ -405,61 +405,50 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (trackDep || trackArr) {
-      document.getElementById('origin-name').textContent = 'Buscando...';
-      document.getElementById('dest-name').textContent = '...';
-
-      await loadAirportDb();
-      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
-      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
-
-      document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
-      document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';
-      document.getElementById('dest-code').textContent = arrAirport ? arrAirport.iata : '---';
-      document.getElementById('dest-name').textContent = arrAirport ? arrAirport.name : 'Destino desconocido';
-
-      // Try AeroDataBox for better destination info
-      try {
-        const now = new Date();
-        const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-        const dateStr = localDate.toISOString().split('T')[0];
-        const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${dateStr}`, { signal: AbortSignal.timeout(5000) });
-        const txt = await resp.text();
-        if (txt && txt.trim() !== '' && txt.trim() !== '[]') {
-          const arr = JSON.parse(txt);
-          if (Array.isArray(arr) && arr.length > 0) {
-            const d = arr[0];
-            if (d.departure?.airport?.iata) {
-              document.getElementById('origin-code').textContent = d.departure.airport.iata;
-              document.getElementById('origin-name').textContent = d.departure.airport.name || d.departure.airport.iata;
-            }
-            if (d.arrival?.airport?.iata) {
-              document.getElementById('dest-code').textContent = d.arrival.airport.iata;
-              document.getElementById('dest-name').textContent = d.arrival.airport.name || d.arrival.airport.iata;
-            }
+    // FIRST: Try AeroDataBox for accurate data
+    try {
+      const now = new Date();
+      const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+      const dateStr = localDate.toISOString().split('T')[0];
+      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${dateStr}`, { signal: AbortSignal.timeout(8000) });
+      const txt = await resp.text();
+      if (txt && txt.trim() !== '' && txt.trim() !== '[]') {
+        const arr = JSON.parse(txt);
+        if (Array.isArray(arr) && arr.length > 0) {
+          const d = arr[0];
+          if (d.departure?.airport?.iata || d.arrival?.airport?.iata) {
+            document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
+            document.getElementById('origin-name').textContent = d.departure?.airport?.name || d.departure?.airport?.iata || 'Origen desconocido';
+            document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
+            document.getElementById('dest-name').textContent = d.arrival?.airport?.name || d.arrival?.airport?.iata || 'Destino desconocido';
             if (d.airline?.name) {
               document.getElementById('flight-extra-info').style.display = 'block';
               document.getElementById('flight-airline').textContent = d.airline.name;
               document.getElementById('flight-aircraft').textContent = d.aircraft?.model || '---';
             }
+            return;
           }
         }
-      } catch (e) {}
+      }
+    } catch (e) {}
+
+    // SECOND: Fallback to track-based lookup
+    if (trackDep || trackArr) {
+      await loadAirportDb();
+      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
+      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
+      document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
+      document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';
+      document.getElementById('dest-code').textContent = arrAirport ? arrAirport.iata : '---';
+      document.getElementById('dest-name').textContent = arrAirport ? arrAirport.name : 'Destino desconocido';
       return;
     }
 
-    // Source 2: AeroDataBox (individual lookup)
-    document.getElementById('origin-name').textContent = 'Buscando...';
-    document.getElementById('dest-name').textContent = '...';
-
-    try {
-      const now2 = new Date();
-      const localDate2 = new Date(now2.getTime() - (now2.getTimezoneOffset() * 60000));
-      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${localDate2.toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
-      const txt = await resp.text();
-      if (!txt || txt.trim() === '' || txt.trim() === '[]') {
-        document.getElementById('origin-name').textContent = 'Sin datos';
-        document.getElementById('dest-name').textContent = '';
+    // THIRD: No data available
+    document.getElementById('origin-code').textContent = '---';
+    document.getElementById('origin-name').textContent = 'Sin datos';
+    document.getElementById('dest-code').textContent = '---';
+    document.getElementById('dest-name').textContent = '';
         return;
       }
       const arr = JSON.parse(txt);

@@ -420,7 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Try AeroDataBox for better destination info
       try {
-        const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(5000) });
+        const now = new Date();
+        const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+        const dateStr = localDate.toISOString().split('T')[0];
+        const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${dateStr}`, { signal: AbortSignal.timeout(5000) });
         const txt = await resp.text();
         if (txt && txt.trim() !== '' && txt.trim() !== '[]') {
           const arr = JSON.parse(txt);

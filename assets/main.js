@@ -383,29 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Source 1: OpenSky + AirLabs routes (cached)
-    let route = flightRoutes[cs];
-
-    // Source 2: Track-based origin/destination from trajectory
-    const trackDep = flight.trackOrigin;
-    const trackArr = flight.trackDest;
-
-    if (route && route.departure && route.arrival) {
-      document.getElementById('origin-code').textContent = route.departure || '---';
-      document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
-      document.getElementById('dest-code').textContent = route.arrival || '---';
-      document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
-      document.getElementById('flight-extra-info').style.display = 'block';
-      document.getElementById('flight-airline').textContent = route.airline || '---';
-      document.getElementById('flight-aircraft').textContent = route.aircraft || '---';
-      document.getElementById('flight-status').textContent = route.status || 'En vuelo';
-      document.getElementById('flight-status').style.display = 'inline-block';
-      document.getElementById('flight-status').style.color = '#fff';
-      document.getElementById('flight-status').style.background = '#22c55e';
-      return;
-    }
-
-    // FIRST: Try AeroDataBox for accurate data
+    // Use AeroDataBox for flight details
     try {
       const now = new Date();
       const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
@@ -418,9 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const d = arr[0];
           if (d.departure?.airport?.iata || d.arrival?.airport?.iata) {
             document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
-            document.getElementById('origin-name').textContent = d.departure?.airport?.name || d.departure?.airport?.iata || 'Origen desconocido';
+            document.getElementById('origin-name').textContent = d.departure?.airport?.name || d.departure?.airport?.iata || 'Sin datos';
             document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
-            document.getElementById('dest-name').textContent = d.arrival?.airport?.name || d.arrival?.airport?.iata || 'Destino desconocido';
+            document.getElementById('dest-name').textContent = d.arrival?.airport?.name || d.arrival?.airport?.iata || 'Sin datos';
             if (d.airline?.name) {
               document.getElementById('flight-extra-info').style.display = 'block';
               document.getElementById('flight-airline').textContent = d.airline.name;
@@ -432,11 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // Fallback: No AeroDataBox data available
     document.getElementById('origin-code').textContent = '---';
-    document.getElementById('origin-name').textContent = 'Sin datos de ruta';
+    document.getElementById('origin-name').textContent = 'Sin datos';
     document.getElementById('dest-code').textContent = '---';
-    document.getElementById('dest-name').textContent = 'Sin datos de ruta';
+    document.getElementById('dest-name').textContent = '';
   }
 
   function formatTime(timeStr) {

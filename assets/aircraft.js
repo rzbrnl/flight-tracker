@@ -141,7 +141,7 @@ const AircraftManager = {
             const validPath = track.path.filter(p => p[1] !== null && p[2] !== null);
             if (validPath.length > 1) {
               trackOrigin = { lat: validPath[0][1], lng: validPath[0][2] };
-              trackDest = { lat: validPath[validPath.length - 1][1], lng: validPath[validPath.length - 2] };
+              trackDest = { lat: validPath[validPath.length - 1][1], lng: validPath[validPath.length - 1][2] };
               const path = validPath.map(p => [p[1], p[2]]);
               const trailLine = L.polyline(path, {
                 color: '#3b82f6',

@@ -6,6 +6,7 @@ $ADB_KEY = "896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14";
 $OS_CLIENT_ID = "rzbrnl-api-client";
 $OS_CLIENT_SECRET = "Z6GWmsmoQ1gM2TxEgaVUshxLLA88IskR";
 $AIRLABS_KEY = "f2e970e5-7284-4e0d-b05a-e4faaecd7962";
+$CACHE_FILE = __DIR__ . '/cache_routes.json';
 
 function getOpenSkyToken() {
     global $OS_CLIENT_ID, $OS_CLIENT_SECRET;
@@ -19,9 +20,7 @@ function getOpenSkyToken() {
     ]));
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $data = curl_exec($ch);
-    $err = curl_error($ch);
     curl_close($ch);
-    if ($err) return null;
     $json = json_decode($data, true);
     return $json["access_token"] ?? null;
 }
@@ -32,9 +31,7 @@ function fetchWithAuth($url) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 25);
     $headers = ["Accept: application/json"];
-    if ($token) {
-        $headers[] = "Authorization: Bearer " . $token;
-    }
+    if ($token) $headers[] = "Authorization: Bearer " . $token;
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     $data = curl_exec($ch);
     curl_close($ch);
@@ -42,6 +39,14 @@ function fetchWithAuth($url) {
 }
 
 if (isset($_GET["flight_routes"])) {
+    global $CACHE_FILE, $AIRLABS_KEY;
+
+    // Return cached data if fresh (< 5 minutes old)
+    if (file_exists($CACHE_FILE) && (time() - filemtime($CACHE_FILE)) < 300) {
+        echo file_get_contents($CACHE_FILE);
+        exit;
+    }
+
     $routes = [];
 
     // OpenSky routes
@@ -61,8 +66,7 @@ if (isset($_GET["flight_routes"])) {
         }
     }
 
-    // AirLabs flights (merge into existing)
-    global $AIRLABS_KEY;
+    // AirLabs flights
     $ch = curl_init("https://airlabs.co/api/v9/flights?api_key={$AIRLABS_KEY}&_view=array&_fields=hex,flight_iata,dep_iata,arr_iata,airline_iata,aircraft_icao,status");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
@@ -80,11 +84,17 @@ if (isset($_GET["flight_routes"])) {
                     'aircraft' => $f[5] ?? null,
                     'status' => $f[6] ?? null
                 ];
+            } elseif ($cs && isset($routes[$cs]) && !$routes[$cs]['airline'] ?? false) {
+                if (isset($f[4])) $routes[$cs]['airline'] = $f[4];
+                if (isset($f[5])) $routes[$cs]['aircraft'] = $f[5];
+                if (isset($f[6])) $routes[$cs]['status'] = $f[6];
             }
         }
     }
 
-    echo json_encode($routes);
+    $json = json_encode($routes);
+    file_put_contents($CACHE_FILE, $json);
+    echo $json;
 
 } elseif (isset($_GET["airports"])) {
     $lat = $_GET["lat"] ?? "0";
@@ -100,15 +110,13 @@ if (isset($_GET["flight_routes"])) {
         "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
         "Accept: application/json"
     ]);
-    $data = curl_exec($ch);
+    echo curl_exec($ch);
     curl_close($ch);
-    echo $data;
 
 } elseif (isset($_GET["track"])) {
     $icao24 = $_GET["track"];
-    $url = "https://opensky-network.org/api/tracks/all?icao24=" . $icao24 . "&time=0";
     $token = getOpenSkyToken();
-    $ch = curl_init($url);
+    $ch = curl_init("https://opensky-network.org/api/tracks/all?icao24={$icao24}&time=0");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 20);
     $headers = ["Accept: application/json"];
@@ -120,7 +128,7 @@ if (isset($_GET["flight_routes"])) {
 } else {
     $url = "https://opensky-network.org/api/states/all";
     if (isset($_GET["lamin"]) && isset($_GET["lomin"]) && isset($_GET["lamax"]) && isset($_GET["lomax"])) {
-        $url .= "?lamin=" . $_GET["lamin"] . "&lomin=" . $_GET["lomin"] . "&lamax=" . $_GET["lamax"] . "&lomax=" . $_GET["lomax"];
+        $url .= "?lamin={$_GET["lamin"]}&lomin={$_GET["lomin"]}&lamax={$_GET["lamax"]}&lomax={$_GET["lomax"]}";
     }
     $token = getOpenSkyToken();
     $ch = curl_init($url);

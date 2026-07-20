@@ -280,15 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (details.departure) {
       const schedDep = details.departure.scheduledTime?.local || details.departure.scheduledTime?.utc;
-      data.scheduledDep = schedDep ? this.formatTime(schedDep) : '---';
+      data.scheduledDep = schedDep ? formatTime(schedDep) : '---';
       const actDep = details.departure.revisedTime?.local || details.departure.actualTime?.local;
-      data.actualDep = actDep ? this.formatTime(actDep) : '---';
+      data.actualDep = actDep ? formatTime(actDep) : '---';
     }
     if (details.arrival) {
       const schedArr = details.arrival.scheduledTime?.local || details.arrival.scheduledTime?.utc;
-      data.scheduledArr = schedArr ? this.formatTime(schedArr) : '---';
+      data.scheduledArr = schedArr ? formatTime(schedArr) : '---';
       const estArr = details.arrival.predictedTime?.local || details.arrival.revisedTime?.local;
-      data.estimatedArr = estArr ? this.formatTime(estArr) : '---';
+      data.estimatedArr = estArr ? formatTime(estArr) : '---';
     }
 
     const statusMap = {

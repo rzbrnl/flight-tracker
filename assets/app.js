@@ -344,38 +344,68 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('icao24').textContent = data.icao24 || flight.icao24 || '---';
 
     const cs = (flight.callsign || '').trim();
-    let route = cs ? flightRoutes[cs] : null;
-
-    // If no route found and routes seem empty, try reloading
-    if (!route && Object.keys(flightRoutes).length === 0) {
-      document.getElementById('origin-name').textContent = 'Cargando rutas...';
-      await loadFlightRoutes();
-      route = cs ? flightRoutes[cs] : null;
+    if (!cs || cs === '---') {
+      document.getElementById('origin-code').textContent = '---';
+      document.getElementById('origin-name').textContent = 'Sin callsign';
+      document.getElementById('dest-code').textContent = '---';
+      document.getElementById('dest-name').textContent = '';
+      return;
     }
 
+    // Source 1: OpenSky + AirLabs routes (cached)
+    let route = flightRoutes[cs];
     if (route && (route.departure || route.arrival)) {
       document.getElementById('origin-code').textContent = route.departure || '---';
       document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
       document.getElementById('dest-code').textContent = route.arrival || '---';
       document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
-
       document.getElementById('flight-extra-info').style.display = 'block';
-      document.getElementById('flight-airline').textContent = route.airline || data.airline || '---';
-      document.getElementById('flight-aircraft').textContent = route.aircraft || data.aircraft || '---';
-      document.getElementById('flight-registration').textContent = data.registration || '---';
+      document.getElementById('flight-airline').textContent = route.airline || '---';
+      document.getElementById('flight-aircraft').textContent = route.aircraft || '---';
       document.getElementById('flight-status').textContent = route.status || 'En vuelo';
       document.getElementById('flight-status').style.display = 'inline-block';
       document.getElementById('flight-status').style.color = '#fff';
-      const sc = { 'en-route':'#22c55e','landed':'#6b7280','scheduled':'#3b82f6','delayed':'#ef4444','cancelled':'#ef4444' };
-      document.getElementById('flight-status').style.background = sc[route.status] || '#22c55e';
-      document.getElementById('flight-scheduled-dep').textContent = '---';
-      document.getElementById('flight-scheduled-arr').textContent = '---';
-      document.getElementById('flight-actual-dep').textContent = '---';
-      document.getElementById('flight-estimated-arr').textContent = '---';
-    } else {
-      document.getElementById('origin-code').textContent = '---';
-      document.getElementById('origin-name').textContent = cs ? 'Sin ruta registrada' : 'Sin callsign';
-      document.getElementById('dest-code').textContent = '---';
+      document.getElementById('flight-status').style.background = '#22c55e';
+      return;
+    }
+
+    // Source 2: AeroDataBox (individual lookup)
+    document.getElementById('origin-name').textContent = 'Buscando...';
+    document.getElementById('dest-name').textContent = '...';
+
+    try {
+      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
+      const txt = await resp.text();
+      if (!txt || txt.trim() === '' || txt.trim() === '[]') {
+        document.getElementById('origin-name').textContent = 'Sin datos';
+        document.getElementById('dest-name').textContent = '';
+        return;
+      }
+      const arr = JSON.parse(txt);
+      if (!Array.isArray(arr) || arr.length === 0) {
+        document.getElementById('origin-name').textContent = 'Sin datos';
+        document.getElementById('dest-name').textContent = '';
+        return;
+      }
+      const d = arr[0];
+      document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
+      document.getElementById('origin-name').textContent = d.departure?.airport?.name || 'Sin datos';
+      document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
+      document.getElementById('dest-name').textContent = d.arrival?.airport?.name || 'Sin datos';
+
+      document.getElementById('flight-extra-info').style.display = 'block';
+      document.getElementById('flight-airline').textContent = d.airline?.name || '---';
+      document.getElementById('flight-aircraft').textContent = (d.aircraft?.model || '---') + (d.aircraft?.reg ? ' · ' + d.aircraft.reg : '');
+      document.getElementById('flight-status').textContent = d.status || 'En vuelo';
+      document.getElementById('flight-status').style.display = 'inline-block';
+      document.getElementById('flight-status').style.color = '#fff';
+      document.getElementById('flight-status').style.background = '#22c55e';
+      document.getElementById('flight-scheduled-dep').textContent = d.departure?.scheduledTime?.local ? formatTime(d.departure.scheduledTime.local) : '---';
+      document.getElementById('flight-scheduled-arr').textContent = d.arrival?.scheduledTime?.local ? formatTime(d.arrival.scheduledTime.local) : '---';
+      document.getElementById('flight-actual-dep').textContent = d.departure?.revisedTime?.local ? formatTime(d.departure.revisedTime.local) : '---';
+      document.getElementById('flight-estimated-arr').textContent = d.arrival?.predictedTime?.local ? formatTime(d.arrival.predictedTime.local) : '---';
+    } catch (e) {
+      document.getElementById('origin-name').textContent = 'Sin datos';
       document.getElementById('dest-name').textContent = '';
     }
   }

@@ -96,6 +96,21 @@ if (isset($_GET["flight_routes"])) {
     file_put_contents($CACHE_FILE, $json);
     echo $json;
 
+} elseif (isset($_GET["flight"])) {
+    $callsign = $_GET["flight"];
+    $date = $_GET["date"] ?? date("Y-m-d");
+    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "X-RapidAPI-Key: " . $ADB_KEY,
+        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
+        "Accept: application/json"
+    ]);
+    echo curl_exec($ch);
+    curl_close($ch);
+
 } elseif (isset($_GET["airports"])) {
     $lat = $_GET["lat"] ?? "0";
     $lon = $_GET["lon"] ?? "0";

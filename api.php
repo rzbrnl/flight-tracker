@@ -2,11 +2,7 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 
-$ADB_KEYS = [
-    "896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14",
-    "fb9d149d14msh857f7f673ea918fp1d3c02jsnfdef20f928c7"
-];
-$ADB_KEY = $ADB_KEYS[array_rand($ADB_KEYS)];
+$ADB_KEY = "fb9d149d14msh857f7f673ea918fp1d3c02jsnfdef20f928c7";
 $OS_CLIENT_ID = "rzbrnl-api-client";
 $OS_CLIENT_SECRET = "Z6GWmsmoQ1gM2TxEgaVUshxLLA88IskR";
 $AIRLABS_KEY = "f2e970e5-7284-4e0d-b05a-e4faaecd7962";

@@ -150,15 +150,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('airport-name-full').textContent = airport.name;
     document.getElementById('airport-iata').textContent = airport.iata;
-    const elevEl = document.getElementById('airport-elevation');
-    if (airport.elevation && airport.elevation !== '---') {
-      elevEl.textContent = airport.elevation;
-      elevEl.parentElement.style.display = '';
-    } else {
-      elevEl.parentElement.style.display = 'none';
-    }
     document.getElementById('airport-lat').textContent = airport.lat.toFixed(4) + '°';
     document.getElementById('airport-lng').textContent = airport.lng.toFixed(4) + '°';
+
+    try {
+      const elevResp = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${airport.lat}&longitude=${airport.lng}`);
+      const elevData = await elevResp.json();
+      const elevMeters = elevData.elevation?.[0];
+      if (elevMeters !== undefined && elevMeters !== null) {
+        const elevFt = Math.round(elevMeters * 3.28084);
+        document.getElementById('airport-elevation').textContent = `${elevFt} ft (${Math.round(elevMeters)} m)`;
+        document.getElementById('airport-elevation').parentElement.style.display = '';
+      } else {
+        document.getElementById('airport-elevation').parentElement.style.display = 'none';
+      }
+    } catch (e) {
+      document.getElementById('airport-elevation').parentElement.style.display = 'none';
+    }
 
     document.getElementById('weather-temp').textContent = '---';
     document.getElementById('weather-wind').textContent = '---';

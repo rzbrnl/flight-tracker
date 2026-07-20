@@ -54,8 +54,8 @@ if (isset($_GET["flight_routes"])) {
             $cs = trim($f['callsign'] ?? '');
             if ($cs && isset($f['estDepartureAirport'])) {
                 $routes[$cs] = [
-                    $f['estDepartureAirport'],
-                    $f['estArrivalAirport'] ?? null
+                    'departure' => $f['estDepartureAirport'],
+                    'arrival' => $f['estArrivalAirport'] ?? null
                 ];
             }
         }
@@ -74,11 +74,11 @@ if (isset($_GET["flight_routes"])) {
             $cs = trim($f[1] ?? '');
             if ($cs && !isset($routes[$cs])) {
                 $routes[$cs] = [
-                    $f[2] ?? null,
-                    $f[3] ?? null,
-                    $f[4] ?? null,
-                    $f[5] ?? null,
-                    $f[6] ?? null
+                    'departure' => $f[2] ?? null,
+                    'arrival' => $f[3] ?? null,
+                    'airline' => $f[4] ?? null,
+                    'aircraft' => $f[5] ?? null,
+                    'status' => $f[6] ?? null
                 ];
             }
         }

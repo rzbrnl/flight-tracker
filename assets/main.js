@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
       const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
       const dateStr = localDate.toISOString().split('T')[0];
-      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${dateStr}`, { signal: AbortSignal.timeout(8000) });
+      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${dateStr}&t=${Date.now()}`, { signal: AbortSignal.timeout(8000) });
       const txt = await resp.text();
       if (txt && txt.trim() !== '' && txt.trim() !== '[]') {
         const arr = JSON.parse(txt);

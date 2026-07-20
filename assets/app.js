@@ -344,7 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('icao24').textContent = data.icao24 || flight.icao24 || '---';
 
     const cs = (flight.callsign || '').trim();
-    const route = cs ? flightRoutes[cs] : null;
+    let route = cs ? flightRoutes[cs] : null;
+
+    // If no route found and routes seem empty, try reloading
+    if (!route && Object.keys(flightRoutes).length === 0) {
+      document.getElementById('origin-name').textContent = 'Cargando rutas...';
+      await loadFlightRoutes();
+      route = cs ? flightRoutes[cs] : null;
+    }
 
     if (route && (route.departure || route.arrival)) {
       document.getElementById('origin-code').textContent = route.departure || '---';

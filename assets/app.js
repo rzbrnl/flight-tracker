@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const ea = details.arrival.predictedTime?.local || details.arrival.revisedTime?.local;
               data.estimatedArr = ea ? formatTime(ea) : '---';
             }
-            const sm = { 'SCHEDULED':'Programado','ACTIVE':'En vuelo','EN ROUTE':'En vuelo','DEPARTED':'Despegado','LANDED':'Aterrizado','ARRIVED':'Llegado','CANCELLED':'Cancelado','DELAYED':'Retrasado','DIVERTED':'Desviado','EXPECTED':'Esperado' };
+            const sm = { 'SCHEDULED':'Programado','ACTIVE':'En vuelo','EN ROUTE':'En vuelo','EnRoute':'En vuelo','DEPARTED':'Despegado','LANDED':'Aterrizado','ARRIVED':'Llegado','CANCELLED':'Cancelado','DELAYED':'Retrasado','DIVERTED':'Desviado','EXPECTED':'Esperado','Unknown':'Desconocido' };
             data.status = sm[details.status] || details.status || 'En vuelo';
           }
 

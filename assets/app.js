@@ -217,12 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('flight-status').textContent = fData.status || '---';
 
       const statusEl = document.getElementById('flight-status');
-      if (fData.status === 'En vuelo') {
-        statusEl.style.color = '#22c55e';
-      } else if (fData.status === 'Retrasado') {
-        statusEl.style.color = '#ef4444';
-      } else {
+      if (fData.status && fData.status !== '---' && fData.status !== 'En vuelo') {
+        statusEl.style.display = 'inline-block';
         statusEl.style.color = 'var(--accent)';
+      } else if (fData.status === 'En vuelo') {
+        statusEl.style.display = 'inline-block';
+        statusEl.style.color = '#22c55e';
+      } else {
+        statusEl.style.display = 'none';
       }
 
       if (fData.origin) {

@@ -298,7 +298,7 @@ code, .mono {
 
 .flight-route {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 24px;
 }
@@ -311,17 +311,28 @@ code, .mono {
 }
 
 .airport-name {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .route-line {
   flex: 1;
-  height: 1px;
-  background: var(--border);
-  margin: 0 16px;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  min-width: 60px;
+}
+
+.route-line svg {
+  color: var(--accent);
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .route-line::before {

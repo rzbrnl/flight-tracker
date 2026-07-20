@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const trackDep = flight.trackOrigin;
     const trackArr = flight.trackDest;
 
-    if (route && (route.departure || route.arrival)) {
+    if (route && route.departure && route.arrival) {
       document.getElementById('origin-code').textContent = route.departure || '---';
       document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
       document.getElementById('dest-code').textContent = route.arrival || '---';

@@ -22,6 +22,24 @@ const DARK_TILE = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
 
 let currentTile = null;
 let flightRoutes = {};
+let airportCache = {};
+
+async function lookupAirport(code) {
+  if (!code || airportCache[code] !== undefined) return airportCache[code];
+  try {
+    const resp = await fetch(`/api.php?airport=${code}&type=icao`, { signal: AbortSignal.timeout(5000) });
+    const txt = await resp.text();
+    if (!txt || txt.trim() === '' || txt.trim() === '{}') { airportCache[code] = null; return null; }
+    const data = JSON.parse(txt);
+    const name = data.shortName || data.name || data.iata || code;
+    const iata = data.iata || code;
+    airportCache[code] = { name, iata };
+    return airportCache[code];
+  } catch (e) {
+    airportCache[code] = null;
+    return null;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const map = FlightMap.init();
@@ -355,10 +373,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Source 1: OpenSky + AirLabs routes (cached)
     let route = flightRoutes[cs];
     if (route && (route.departure || route.arrival)) {
-      document.getElementById('origin-code').textContent = route.departure || '---';
-      document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
-      document.getElementById('dest-code').textContent = route.arrival || '---';
-      document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
+      document.getElementById('origin-code').textContent = '...';
+      document.getElementById('origin-name').textContent = 'Buscando...';
+      document.getElementById('dest-code').textContent = '...';
+      document.getElementById('dest-name').textContent = '...';
+
+      const [depInfo, arrInfo] = await Promise.all([
+        route.departure ? lookupAirport(route.departure) : Promise.resolve(null),
+        route.arrival ? lookupAirport(route.arrival) : Promise.resolve(null)
+      ]);
+
+      document.getElementById('origin-code').textContent = depInfo ? depInfo.iata : route.departure || '---';
+      document.getElementById('origin-name').textContent = depInfo ? depInfo.name : (route.departure || 'Sin datos');
+      document.getElementById('dest-code').textContent = arrInfo ? arrInfo.iata : route.arrival || '---';
+      document.getElementById('dest-name').textContent = arrInfo ? arrInfo.name : (route.arrival || 'Sin datos');
+
       document.getElementById('flight-extra-info').style.display = 'block';
       document.getElementById('flight-airline').textContent = route.airline || '---';
       document.getElementById('flight-aircraft').textContent = route.aircraft || '---';

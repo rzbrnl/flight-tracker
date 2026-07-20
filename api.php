@@ -111,6 +111,21 @@ if (isset($_GET["flight_routes"])) {
     echo curl_exec($ch);
     curl_close($ch);
 
+} elseif (isset($_GET["airport"])) {
+    $code = $_GET["airport"];
+    $type = isset($_GET["type"]) ? $_GET["type"] : "icao";
+    $url = "https://aerodatabox.p.rapidapi.com/airports/{$type}/{$code}?withRunways=false";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "X-RapidAPI-Key: " . $ADB_KEY,
+        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
+        "Accept: application/json"
+    ]);
+    echo curl_exec($ch);
+    curl_close($ch);
+
 } elseif (isset($_GET["airports"])) {
     $lat = $_GET["lat"] ?? "0";
     $lon = $_GET["lon"] ?? "0";

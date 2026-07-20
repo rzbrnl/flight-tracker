@@ -353,14 +353,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
 
       document.getElementById('flight-extra-info').style.display = 'block';
-      document.getElementById('flight-airline').textContent = route.airline || '---';
-      document.getElementById('flight-aircraft').textContent = route.aircraft || '---';
+      document.getElementById('flight-airline').textContent = route.airline || data.airline || '---';
+      document.getElementById('flight-aircraft').textContent = route.aircraft || data.aircraft || '---';
       document.getElementById('flight-registration').textContent = data.registration || '---';
       document.getElementById('flight-status').textContent = route.status || 'En vuelo';
       document.getElementById('flight-status').style.display = 'inline-block';
       document.getElementById('flight-status').style.color = '#fff';
       const sc = { 'en-route':'#22c55e','landed':'#6b7280','scheduled':'#3b82f6','delayed':'#ef4444','cancelled':'#ef4444' };
-      document.getElementById('flight-status').style.background = sc[route.status] || '#6b7280';
+      document.getElementById('flight-status').style.background = sc[route.status] || '#22c55e';
       document.getElementById('flight-scheduled-dep').textContent = '---';
       document.getElementById('flight-scheduled-arr').textContent = '---';
       document.getElementById('flight-actual-dep').textContent = '---';
@@ -450,28 +450,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadFlightRoutes() {
     try {
-      const resp = await fetch('/api.php?airlabs=1', { signal: AbortSignal.timeout(20000) });
+      const resp = await fetch('/api.php?flight_routes=1', { signal: AbortSignal.timeout(30000) });
       const data = await resp.json();
-      if (Array.isArray(data)) {
-        flightRoutes = {};
-        data.forEach(f => {
-          const hex = f[0];
-          const callsign = (f[1] || '').trim();
-          const depIata = f[2] || null;
-          const arrIata = f[3] || null;
-          const airlineIata = f[4] || null;
-          const aircraftIcao = f[5] || null;
-          const status = f[6] || null;
-          if (callsign) {
-            flightRoutes[callsign] = {
-              hex, callsign, departure: depIata, arrival: arrIata,
-              airline: airlineIata, aircraft: aircraftIcao, status
-            };
-          }
-        });
+      if (data && typeof data === 'object') {
+        flightRoutes = data;
       }
     } catch (e) {
-      // AirLabs fetch failed
+      // Routes fetch failed
     }
   }
 

@@ -5,6 +5,7 @@ header("Access-Control-Allow-Origin: *");
 $ADB_KEY = "896aeb64d2msh83d83c02ad03cc2p1e8b85jsn57a50db40b14";
 $OS_CLIENT_ID = "rzbrnl-api-client";
 $OS_CLIENT_SECRET = "Z6GWmsmoQ1gM2TxEgaVUshxLLA88IskR";
+$AIRLABS_KEY = "f2e970e5-7284-4e0d-b05a-e4faaecd7962";
 
 function getOpenSkyToken() {
     global $OS_CLIENT_ID, $OS_CLIENT_SECRET;
@@ -40,49 +41,64 @@ function fetchWithAuth($url) {
     return $data;
 }
 
-function adbRequest($url) {
-    global $ADB_KEY;
+function fetchUrl($url, $headers = []) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "X-RapidAPI-Key: " . $ADB_KEY,
-        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
-        "Accept: application/json"
-    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    if (!empty($headers)) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    }
     $data = curl_exec($ch);
     curl_close($ch);
     return $data;
 }
 
-if (isset($_GET["airlabs"])) {
-    $url = "https://airlabs.co/api/v9/flights?api_key=f2e970e5-7284-4e0d-b05a-e4faaecd7962&_view=array&_fields=hex,flight_iata,dep_iata,arr_iata,airline_iata,aircraft_icao,status,lat,lng,alt,dir,speed,v_speed,squawk";
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    $data = curl_exec($ch);
-    curl_close($ch);
-    echo $data;
+if (isset($_GET["flight_routes"])) {
+    $routes = [];
 
-} elseif (isset($_GET["flight_routes"])) {
+    // 1. Get OpenSky routes (last 4 hours)
     $end = time();
     $begin = $end - 14400;
-    $url = "https://opensky-network.org/api/flights/all?begin={$begin}&end={$end}";
-    $data = fetchWithAuth($url);
-    $flights = json_decode($data, true);
-    $routes = [];
-    if (is_array($flights)) {
-        foreach ($flights as $f) {
+    $osData = fetchWithAuth("https://opensky-network.org/api/flights/all?begin={$begin}&end={$end}");
+    $osFlights = json_decode($osData, true);
+    if (is_array($osFlights)) {
+        foreach ($osFlights as $f) {
             $cs = trim($f['callsign'] ?? '');
             if ($cs && isset($f['estDepartureAirport'])) {
                 $routes[$cs] = [
                     'callsign' => $cs,
                     'departure' => $f['estDepartureAirport'],
-                    'arrival' => $f['estArrivalAirport'] ?? null
+                    'arrival' => $f['estArrivalAirport'] ?? null,
+                    'source' => 'opensky'
                 ];
             }
         }
     }
+
+    // 2. Get AirLabs flights and merge (fills gaps)
+    $alData = fetchUrl("https://airlabs.co/api/v9/flights?api_key={$AIRLABS_KEY}&_view=array&_fields=hex,flight_iata,dep_iata,arr_iata,airline_iata,aircraft_icao,status");
+    $alFlights = json_decode($alData, true);
+    if (is_array($alFlights)) {
+        foreach ($alFlights as $f) {
+            $cs = trim($f[1] ?? '');
+            if ($cs && !isset($routes[$cs])) {
+                $routes[$cs] = [
+                    'callsign' => $cs,
+                    'departure' => $f[2] ?? null,
+                    'arrival' => $f[3] ?? null,
+                    'airline' => $f[4] ?? null,
+                    'aircraft' => $f[5] ?? null,
+                    'status' => $f[6] ?? null,
+                    'source' => 'airlabs'
+                ];
+            } elseif ($cs && isset($routes[$cs]) && !$routes[$cs]['airline'] && isset($f[4])) {
+                $routes[$cs]['airline'] = $f[4];
+                $routes[$cs]['aircraft'] = $f[5] ?? null;
+                $routes[$cs]['status'] = $f[6] ?? null;
+            }
+        }
+    }
+
     echo json_encode($routes);
 
 } elseif (isset($_GET["airports"])) {
@@ -91,28 +107,17 @@ if (isset($_GET["airlabs"])) {
     $radius = $_GET["radius"] ?? "200";
     $limit = $_GET["limit"] ?? "30";
     $url = "https://aerodatabox.p.rapidapi.com/airports/search/location?lat={$lat}&lon={$lon}&radiusKm={$radius}&limit={$limit}&withFlightInfoOnly=true";
-    echo adbRequest($url);
-
-} elseif (isset($_GET["flight"])) {
-    $callsign = $_GET["flight"];
-    $date = $_GET["date"] ?? date("Y-m-d");
-    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
-    echo adbRequest($url);
+    $data = fetchUrl($url, [
+        "X-RapidAPI-Key: " . $ADB_KEY,
+        "X-RapidAPI-Host: aerodatabox.p.rapidapi.com",
+        "Accept: application/json"
+    ]);
+    echo $data;
 
 } elseif (isset($_GET["track"])) {
     $icao24 = $_GET["track"];
     $url = "https://opensky-network.org/api/tracks/all?icao24=" . $icao24 . "&time=0";
     echo fetchWithAuth($url);
-
-} elseif (isset($_GET["weather"])) {
-    $airport = $_GET["weather"];
-    $url = "https://aviationweather.gov/api/data/metar?ids=" . $airport . "&format=json";
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    $data = curl_exec($ch);
-    curl_close($ch);
-    echo $data;
 
 } else {
     $url = "https://opensky-network.org/api/states/all";

@@ -42,6 +42,18 @@ function resolveAirport(code) {
   return info ? { iata: info.iata, name: info.name } : null;
 }
 
+function findNearestAirport(lat, lng) {
+  if (!airportDb) return null;
+  let best = null, bestDist = Infinity;
+  for (const [icao, info] of Object.entries(airportDb)) {
+    if (!info.lat || !info.lng) continue;
+    const dlat = info.lat - lat, dlng = info.lng - lng;
+    const dist = dlat * dlat + dlng * dlng;
+    if (dist < bestDist) { bestDist = dist; best = { iata: info.iata, name: info.name, icao }; }
+  }
+  return best;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const map = FlightMap.init();
   const sidebar = document.getElementById('sidebar');
@@ -398,8 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dest-name').textContent = '...';
 
       await loadAirportDb();
-      const depAirport = trackDep ? resolveAirport(trackDep.icao) : null;
-      const arrAirport = trackArr ? resolveAirport(trackArr.icao) : null;
+      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
+      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
 
       document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
       document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';

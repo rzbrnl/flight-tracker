@@ -453,7 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dest-name').textContent = '...';
 
     try {
-      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
+      const now2 = new Date();
+      const localDate2 = new Date(now2.getTime() - (now2.getTimezoneOffset() * 60000));
+      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${localDate2.toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
       const txt = await resp.text();
       if (!txt || txt.trim() === '' || txt.trim() === '[]') {
         document.getElementById('origin-name').textContent = 'Sin datos';

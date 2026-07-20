@@ -55,7 +55,16 @@ function adbRequest($url) {
     return $data;
 }
 
-if (isset($_GET["flight_routes"])) {
+if (isset($_GET["airlabs"])) {
+    $url = "https://airlabs.co/api/v9/flights?api_key=f2e970e5-7284-4e0d-b05a-e4faaecd7962&_view=array&_fields=hex,flight_iata,dep_iata,arr_iata,airline_iata,aircraft_icao,status,lat,lng,alt,dir,speed,v_speed,squawk";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    echo $data;
+
+} elseif (isset($_GET["flight_routes"])) {
     $end = time();
     $begin = $end - 14400;
     $url = "https://opensky-network.org/api/flights/all?begin={$begin}&end={$end}";

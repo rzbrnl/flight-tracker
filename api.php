@@ -29,7 +29,7 @@ function fetchWithAuth($url) {
     $token = getOpenSkyToken();
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 25);
     $headers = ["Accept: application/json"];
     if ($token) {
         $headers[] = "Authorization: Bearer " . $token;
@@ -55,7 +55,28 @@ function adbRequest($url) {
     return $data;
 }
 
-if (isset($_GET["airports"])) {
+if (isset($_GET["flight_routes"])) {
+    $end = time();
+    $begin = $end - 7200;
+    $url = "https://opensky-network.org/api/flights/all?begin={$begin}&end={$end}";
+    $data = fetchWithAuth($url);
+    $flights = json_decode($data, true);
+    $routes = [];
+    if (is_array($flights)) {
+        foreach ($flights as $f) {
+            $cs = trim($f['callsign'] ?? '');
+            if ($cs && isset($f['estDepartureAirport'])) {
+                $routes[$cs] = [
+                    'callsign' => $cs,
+                    'departure' => $f['estDepartureAirport'],
+                    'arrival' => $f['estArrivalAirport'] ?? null
+                ];
+            }
+        }
+    }
+    echo json_encode($routes);
+
+} elseif (isset($_GET["airports"])) {
     $lat = $_GET["lat"] ?? "0";
     $lon = $_GET["lon"] ?? "0";
     $radius = $_GET["radius"] ?? "200";

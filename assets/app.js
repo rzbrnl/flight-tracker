@@ -21,6 +21,7 @@ const LIGHT_TILE = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.p
 const DARK_TILE = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
 let currentTile = null;
+let flightRoutes = {};
 
 document.addEventListener('DOMContentLoaded', () => {
   const map = FlightMap.init();
@@ -341,17 +342,40 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('vertical-rate').textContent = data.verticalRate !== null ? `${data.verticalRate.toFixed(1)} m/s` : '---';
     document.getElementById('squawk').textContent = data.squawk || '---';
     document.getElementById('icao24').textContent = data.icao24 || flight.icao24 || '---';
-    document.getElementById('origin-code').textContent = '---';
-    document.getElementById('origin-name').textContent = 'Buscando...';
-    document.getElementById('dest-code').textContent = '---';
-    document.getElementById('dest-name').textContent = '...';
 
     const cs = (flight.callsign || '').trim();
     if (!cs || cs === '---') {
+      document.getElementById('origin-code').textContent = '---';
       document.getElementById('origin-name').textContent = 'Sin callsign';
+      document.getElementById('dest-code').textContent = '---';
       document.getElementById('dest-name').textContent = '';
       return;
     }
+
+    // 1. Try OpenSky routes first (free, covers more flights)
+    const route = flightRoutes[cs];
+    if (route && (route.departure || route.arrival)) {
+      document.getElementById('origin-code').textContent = route.departure || '---';
+      document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
+      document.getElementById('dest-code').textContent = route.arrival || '---';
+      document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
+      document.getElementById('flight-extra-info').style.display = 'block';
+      document.getElementById('flight-airline').textContent = data.airline || '---';
+      document.getElementById('flight-aircraft').textContent = data.aircraft || '---';
+      document.getElementById('flight-status').textContent = 'En vuelo';
+      document.getElementById('flight-status').style.display = 'inline-block';
+      document.getElementById('flight-status').style.background = '#22c55e';
+      document.getElementById('flight-status').style.color = '#fff';
+      document.getElementById('flight-scheduled-dep').textContent = '---';
+      document.getElementById('flight-scheduled-arr').textContent = '---';
+      document.getElementById('flight-actual-dep').textContent = '---';
+      document.getElementById('flight-estimated-arr').textContent = '---';
+      return;
+    }
+
+    // 2. Fallback to AeroDataBox
+    document.getElementById('origin-name').textContent = 'Buscando...';
+    document.getElementById('dest-name').textContent = '...';
 
     try {
       const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
@@ -468,6 +492,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function loadFlightRoutes() {
+    try {
+      const resp = await fetch('/api.php?flight_routes=1', { signal: AbortSignal.timeout(15000) });
+      const data = await resp.json();
+      if (data && typeof data === 'object') {
+        flightRoutes = data;
+      }
+    } catch (e) {
+      // Routes fetch failed
+    }
+  }
+
   async function refreshFlights() {
     const bounds = getBounds();
     const flights = await FlightAPI.getFlights(bounds);
@@ -493,7 +529,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   refreshFlights();
+  loadFlightRoutes();
   loadAirports();
   AircraftManager.startAnimation();
   setInterval(refreshFlights, 30000);
+  setInterval(loadFlightRoutes, 60000);
 });

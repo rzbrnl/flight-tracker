@@ -24,16 +24,22 @@ let currentTile = null;
 let flightRoutes = {};
 let airportCache = {};
 
-async function findNearestAirport(lat, lng) {
+let airportDb = null;
+
+async function loadAirportDb() {
+  if (airportDb) return;
   try {
-    const resp = await fetch(`/api.php?airports=1&lat=${lat}&lon=${lng}&radius=100&limit=1`, { signal: AbortSignal.timeout(5000) });
-    const data = await resp.json();
-    if (data && data.items && data.items.length > 0) {
-      const a = data.items[0];
-      return { iata: a.iata || a.icao, name: a.shortName || a.name || a.iata };
-    }
-  } catch (e) {}
-  return null;
+    const resp = await fetch('/assets/airports.json');
+    airportDb = await resp.json();
+  } catch (e) {
+    airportDb = {};
+  }
+}
+
+function resolveAirport(code) {
+  if (!airportDb || !code) return null;
+  const info = airportDb[code.toUpperCase()] || airportDb[code];
+  return info ? { iata: info.iata, name: info.name } : null;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -391,10 +397,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('origin-name').textContent = 'Buscando...';
       document.getElementById('dest-name').textContent = '...';
 
-      const [depAirport, arrAirport] = await Promise.all([
-        trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : Promise.resolve(null),
-        trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : Promise.resolve(null)
-      ]);
+      await loadAirportDb();
+      const depAirport = trackDep ? resolveAirport(trackDep.icao) : null;
+      const arrAirport = trackArr ? resolveAirport(trackArr.icao) : null;
 
       document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
       document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';

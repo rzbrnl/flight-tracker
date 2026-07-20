@@ -150,7 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('airport-name-full').textContent = airport.name;
     document.getElementById('airport-iata').textContent = airport.iata;
-    document.getElementById('airport-elevation').textContent = airport.elevation || '---';
+    const elevEl = document.getElementById('airport-elevation');
+    if (airport.elevation && airport.elevation !== '---') {
+      elevEl.textContent = airport.elevation;
+      elevEl.parentElement.style.display = '';
+    } else {
+      elevEl.parentElement.style.display = 'none';
+    }
     document.getElementById('airport-lat').textContent = airport.lat.toFixed(4) + '°';
     document.getElementById('airport-lng').textContent = airport.lng.toFixed(4) + '°';
 

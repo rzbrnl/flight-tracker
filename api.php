@@ -57,7 +57,7 @@ function adbRequest($url) {
 
 if (isset($_GET["flight_routes"])) {
     $end = time();
-    $begin = $end - 7200;
+    $begin = $end - 14400;
     $url = "https://opensky-network.org/api/flights/all?begin={$begin}&end={$end}";
     $data = fetchWithAuth($url);
     $flights = json_decode($data, true);

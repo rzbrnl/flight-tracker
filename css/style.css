@@ -232,7 +232,7 @@ code, .mono {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-left: 1px solid var(--border);
-  z-index: 100;
+  z-index: 1000;
   padding: 0;
   transform: translateX(100%);
   transition: transform var(--transition-slow);
@@ -332,31 +332,6 @@ code, .mono {
   color: var(--accent);
   opacity: 0.6;
   font-size: 18px;
-}
-
-.route-line::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.route-line i {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 12px;
-  z-index: 1;
 }
 
 .flight-number {

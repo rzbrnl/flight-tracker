@@ -220,12 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (fData.status && fData.status !== '---') {
         statusEl.style.display = 'inline-block';
         statusEl.style.color = '#fff';
-        if (fData.status === 'En vuelo') {
+        if (fData.status === 'En vuelo' || fData.status === 'Despegado') {
           statusEl.style.background = '#22c55e';
         } else if (fData.status === 'Retrasado') {
           statusEl.style.background = '#ef4444';
         } else if (fData.status === 'Programado' || fData.status === 'Esperado') {
           statusEl.style.background = '#3b82f6';
+        } else if (fData.status === 'Aterrizado' || fData.status === 'Llegado') {
+          statusEl.style.background = '#6b7280';
         } else {
           statusEl.style.background = '#6b7280';
         }
@@ -303,7 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'SCHEDULED': 'Programado',
       'ACTIVE': 'En vuelo',
       'EN ROUTE': 'En vuelo',
+      'DEPARTED': 'Despegado',
       'LANDED': 'Aterrizado',
+      'ARRIVED': 'Llegado',
       'CANCELLED': 'Cancelado',
       'DELAYED': 'Retrasado',
       'DIVERTED': 'Desviado',

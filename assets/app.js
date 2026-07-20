@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${airport.lat}&longitude=${airport.lng}` +
-        `&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,weather_code` +
+        `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,weather_code,surface_pressure` +
         `&wind_speed_unit=kn&timezone=auto`;
       const response = await fetch(url);
       if (response.ok) {
@@ -187,15 +187,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (c) {
           document.getElementById('weather-temp').textContent = c.temperature_2m !== undefined ? `${Math.round(c.temperature_2m)}°C` : '---';
           document.getElementById('weather-wind').textContent = c.wind_direction_10m !== undefined ? `${Math.round(c.wind_direction_10m)}° ${Math.round(c.wind_speed_10m)} kts` : '---';
+          document.getElementById('weather-gusts').textContent = c.wind_gusts_10m !== undefined ? `${Math.round(c.wind_gusts_10m)} kts` : '---';
           const visMeters = c.visibility;
           document.getElementById('weather-visibility').textContent = visMeters !== undefined ? (visMeters >= 10000 ? '10+ km' : `${(visMeters / 1000).toFixed(1)} km`) : '---';
           document.getElementById('weather-condition').textContent = WEATHER_CODES[c.weather_code] || `Código ${c.weather_code}`;
+          document.getElementById('weather-cloud-low').textContent = c.cloud_cover_low !== undefined ? `${c.cloud_cover_low}%` : '---';
+          document.getElementById('weather-cloud-mid').textContent = c.cloud_cover_mid !== undefined ? `${c.cloud_cover_mid}%` : '---';
+          document.getElementById('weather-cloud-high').textContent = c.cloud_cover_high !== undefined ? `${c.cloud_cover_high}%` : '---';
+          document.getElementById('weather-humidity').textContent = c.relative_humidity_2m !== undefined ? `${c.relative_humidity_2m}%` : '---';
+          document.getElementById('weather-pressure').textContent = c.surface_pressure !== undefined ? `${Math.round(c.surface_pressure)} hPa` : '---';
 
           const cloud = c.cloud_cover || 0;
           const cat = calcFlightCategory(visMeters || 10000, cloud);
           const catEl = document.getElementById('weather-category');
           catEl.textContent = cat.label;
           catEl.style.color = cat.color;
+
+          try {
+            const elevResp = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${airport.lat}&longitude=${airport.lng}`);
+            const elevData = await elevResp.json();
+            const elevMeters = elevData.elevation?.[0];
+            if (elevMeters !== undefined && c.temperature_2m !== undefined) {
+              const freezingAlt = elevMeters + (c.temperature_2m / -6.5 * 1000);
+              document.getElementById('weather-freezing').textContent = freezingAlt > 0 ? `${Math.round(freezingAlt)} m` : 'A nivel del suelo';
+            } else {
+              document.getElementById('weather-freezing').textContent = '---';
+            }
+          } catch (e) {
+            document.getElementById('weather-freezing').textContent = '---';
+          }
         }
       }
     } catch (e) {

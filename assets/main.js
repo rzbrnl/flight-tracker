@@ -432,23 +432,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // SECOND: Fallback to track-based lookup
-    if (trackDep || trackArr) {
-      await loadAirportDb();
-      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
-      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
-      document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
-      document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';
-      document.getElementById('dest-code').textContent = arrAirport ? arrAirport.iata : '---';
-      document.getElementById('dest-name').textContent = arrAirport ? arrAirport.name : 'Destino desconocido';
-      return;
-    }
-
-    // THIRD: No data available
+    // Fallback: No AeroDataBox data available
     document.getElementById('origin-code').textContent = '---';
-    document.getElementById('origin-name').textContent = 'Sin datos';
+    document.getElementById('origin-name').textContent = 'Sin datos de ruta';
     document.getElementById('dest-code').textContent = '---';
-    document.getElementById('dest-name').textContent = '';
+    document.getElementById('dest-name').textContent = 'Sin datos de ruta';
         return;
       }
       const arr = JSON.parse(txt);

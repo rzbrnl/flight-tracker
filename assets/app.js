@@ -88,7 +88,43 @@ document.addEventListener('DOMContentLoaded', () => {
     L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
   });
 
-    const COVER_MAP = {
+    async function loadAirports() {
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const radius = zoom < 6 ? 500 : zoom < 8 ? 300 : 150;
+    const limit = zoom < 6 ? 20 : zoom < 8 ? 25 : 30;
+
+    try {
+      const response = await fetch(`/api.php?airports=1&lat=${center.lat}&lon=${center.lng}&radius=${radius}&limit=${limit}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data || !data.items) return;
+
+      airportMarkers.forEach(m => map.removeLayer(m));
+      airportMarkers.length = 0;
+
+      data.items.forEach(a => {
+        if (!a.location) return;
+        const marker = L.marker([a.location.lat, a.location.lon], { icon: airportIcon });
+        marker.bindTooltip(`<b>${a.iata || a.icao}</b> — ${a.name || a.shortName || ''}`, {
+          direction: 'top',
+          offset: [0, -12],
+          className: 'airport-tooltip'
+        });
+        marker.on('click', () => {
+          AircraftManager.clearSelection();
+          selectedAirport = { iata: a.iata || a.icao, name: a.name || a.shortName, icao: a.icao, lat: a.location.lat, lng: a.location.lon, elevation: a.elevation ? a.elevation + ' ft' : '---' };
+          showAirportInfo(selectedAirport);
+        });
+        marker.addTo(map);
+        airportMarkers.push(marker);
+      });
+    } catch (e) {
+      // Airport search failed, keep static airports
+    }
+  }
+
+  const COVER_MAP = {
       'SKC': 'Despejado',
       'CLR': 'Despejado',
       'FEW': 'Pocas nubes',
@@ -501,10 +537,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   map.on('moveend', () => {
     clearTimeout(moveTimeout);
-    moveTimeout = setTimeout(refreshFlights, 500);
+    moveTimeout = setTimeout(() => {
+      refreshFlights();
+      loadAirports();
+    }, 500);
   });
 
   refreshFlights();
+  loadAirports();
   AircraftManager.startAnimation();
   setInterval(refreshFlights, 30000);
 });

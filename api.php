@@ -40,10 +40,8 @@ function fetchWithAuth($url) {
     return $data;
 }
 
-if (isset($_GET["flight"])) {
-    $callsign = $_GET["flight"];
-    $date = $_GET["date"] ?? date("Y-m-d");
-    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
+function adbRequest($url) {
+    global $ADB_KEY;
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -54,7 +52,22 @@ if (isset($_GET["flight"])) {
     ]);
     $data = curl_exec($ch);
     curl_close($ch);
-    echo $data;
+    return $data;
+}
+
+if (isset($_GET["airports"])) {
+    $lat = $_GET["lat"] ?? "0";
+    $lon = $_GET["lon"] ?? "0";
+    $radius = $_GET["radius"] ?? "200";
+    $limit = $_GET["limit"] ?? "30";
+    $url = "https://aerodatabox.p.rapidapi.com/airports/search/location?lat={$lat}&lon={$lon}&radiusKm={$radius}&limit={$limit}&withFlightInfoOnly=true";
+    echo adbRequest($url);
+
+} elseif (isset($_GET["flight"])) {
+    $callsign = $_GET["flight"];
+    $date = $_GET["date"] ?? date("Y-m-d");
+    $url = "https://aerodatabox.p.rapidapi.com/flights/callsign/{$callsign}/{$date}";
+    echo adbRequest($url);
 
 } elseif (isset($_GET["track"])) {
     $icao24 = $_GET["track"];

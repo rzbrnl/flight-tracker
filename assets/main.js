@@ -417,6 +417,31 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';
       document.getElementById('dest-code').textContent = arrAirport ? arrAirport.iata : '---';
       document.getElementById('dest-name').textContent = arrAirport ? arrAirport.name : 'Destino desconocido';
+
+      // Try AeroDataBox for better destination info
+      try {
+        const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(5000) });
+        const txt = await resp.text();
+        if (txt && txt.trim() !== '' && txt.trim() !== '[]') {
+          const arr = JSON.parse(txt);
+          if (Array.isArray(arr) && arr.length > 0) {
+            const d = arr[0];
+            if (d.departure?.airport?.iata) {
+              document.getElementById('origin-code').textContent = d.departure.airport.iata;
+              document.getElementById('origin-name').textContent = d.departure.airport.name || d.departure.airport.iata;
+            }
+            if (d.arrival?.airport?.iata) {
+              document.getElementById('dest-code').textContent = d.arrival.airport.iata;
+              document.getElementById('dest-name').textContent = d.arrival.airport.name || d.arrival.airport.iata;
+            }
+            if (d.airline?.name) {
+              document.getElementById('flight-extra-info').style.display = 'block';
+              document.getElementById('flight-airline').textContent = d.airline.name;
+              document.getElementById('flight-aircraft').textContent = d.aircraft?.model || '---';
+            }
+          }
+        }
+      } catch (e) {}
       return;
     }
 

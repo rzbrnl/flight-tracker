@@ -332,153 +332,65 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('airport-info-section').style.display = 'none';
     document.getElementById('flight-extra-info').style.display = 'none';
 
+    const data = AircraftManager.flightData.get(flight.icao24) || {};
     document.getElementById('callsign').textContent = flight.callsign || '---';
     document.getElementById('country').textContent = flight.originCountry || '---';
+    document.getElementById('velocity').textContent = data.velocity ? `${Math.round(data.velocity * 3.6)} km/h` : '---';
+    document.getElementById('altitude').textContent = data.altitude ? `${Math.round(data.altitude)} m` : '---';
+    document.getElementById('heading').textContent = data.heading !== null ? `${Math.round(data.heading)}°` : '---';
+    document.getElementById('vertical-rate').textContent = data.verticalRate !== null ? `${data.verticalRate.toFixed(1)} m/s` : '---';
+    document.getElementById('squawk').textContent = data.squawk || '---';
+    document.getElementById('icao24').textContent = data.icao24 || flight.icao24 || '---';
     document.getElementById('origin-code').textContent = '---';
-    document.getElementById('origin-name').textContent = 'Cargando...';
+    document.getElementById('origin-name').textContent = 'Buscando...';
     document.getElementById('dest-code').textContent = '---';
     document.getElementById('dest-name').textContent = '...';
 
-    const data = AircraftManager.flightData.get(flight.icao24);
-    const fData = data || flight;
-    document.getElementById('velocity').textContent =
-      fData.velocity ? `${Math.round(fData.velocity * 3.6)} km/h` : '---';
-    document.getElementById('altitude').textContent =
-      fData.altitude ? `${Math.round(fData.altitude)} m` : 'En tierra';
-    document.getElementById('heading').textContent =
-      fData.heading !== null ? `${Math.round(fData.heading)}°` : '---';
-    document.getElementById('vertical-rate').textContent =
-      fData.verticalRate !== null ? `${fData.verticalRate.toFixed(1)} m/s` : '---';
-    document.getElementById('squawk').textContent = fData.squawk || '---';
-    document.getElementById('icao24').textContent = fData.icao24 || '---';
+    const cs = (flight.callsign || '').trim();
+    if (!cs || cs === '---') {
+      document.getElementById('origin-name').textContent = 'Sin callsign';
+      document.getElementById('dest-name').textContent = '';
+      return;
+    }
 
-    if (flight.callsign && flight.callsign.trim() && flight.callsign !== '---') {
-      try {
-        const details = await FlightAPI.getFlightDetails(flight.callsign.trim());
-        if (details) {
-          if (data) {
-            if (details.airline) data.airline = details.airline.name || details.airline.icao || '---';
-            if (details.aircraft) {
-              data.aircraft = details.aircraft.model || '---';
-              data.registration = details.aircraft.reg || '---';
-            }
-            if (details.departure && details.departure.airport) {
-              data.origin = { iata: details.departure.airport.iata || '---', name: details.departure.airport.name || '---' };
-            }
-            if (details.arrival && details.arrival.airport) {
-              data.destination = { iata: details.arrival.airport.iata || '---', name: details.arrival.airport.name || '---' };
-            }
-            if (details.departure) {
-              const sd = details.departure.scheduledTime?.local || details.departure.scheduledTime?.utc;
-              data.scheduledDep = sd ? formatTime(sd) : '---';
-              const ad = details.departure.revisedTime?.local || details.departure.actualTime?.local;
-              data.actualDep = ad ? formatTime(ad) : '---';
-            }
-            if (details.arrival) {
-              const sa = details.arrival.scheduledTime?.local || details.arrival.scheduledTime?.utc;
-              data.scheduledArr = sa ? formatTime(sa) : '---';
-              const ea = details.arrival.predictedTime?.local || details.arrival.revisedTime?.local;
-              data.estimatedArr = ea ? formatTime(ea) : '---';
-            }
-            const sm = { 'SCHEDULED':'Programado','ACTIVE':'En vuelo','EN ROUTE':'En vuelo','EnRoute':'En vuelo','DEPARTED':'Despegado','LANDED':'Aterrizado','ARRIVED':'Llegado','CANCELLED':'Cancelado','DELAYED':'Retrasado','DIVERTED':'Desviado','EXPECTED':'Esperado','Unknown':'Desconocido' };
-            data.status = sm[details.status] || details.status || 'En vuelo';
-          }
-
-          document.getElementById('origin-code').textContent = details.departure?.airport?.iata || '---';
-          document.getElementById('origin-name').textContent = details.departure?.airport?.name || '---';
-          document.getElementById('dest-code').textContent = details.arrival?.airport?.iata || '---';
-          document.getElementById('dest-name').textContent = details.arrival?.airport?.name || '---';
-
-          if (data && data.airline) {
-            document.getElementById('flight-extra-info').style.display = 'block';
-            document.getElementById('flight-airline').textContent = data.airline;
-            document.getElementById('flight-aircraft').textContent = data.aircraft || '---';
-            document.getElementById('flight-registration').textContent = data.registration || '---';
-            document.getElementById('flight-scheduled-dep').textContent = data.scheduledDep || '---';
-            document.getElementById('flight-scheduled-arr').textContent = data.scheduledArr || '---';
-            document.getElementById('flight-actual-dep').textContent = data.actualDep || '---';
-            document.getElementById('flight-estimated-arr').textContent = data.estimatedArr || '---';
-            const statusEl = document.getElementById('flight-status');
-            if (data.status && data.status !== '---') {
-              statusEl.textContent = data.status;
-              statusEl.style.display = 'inline-block';
-              statusEl.style.color = '#fff';
-              const sc = { 'En vuelo':'#22c55e','Despegado':'#22c55e','Retrasado':'#ef4444','Programado':'#3b82f6','Esperado':'#3b82f6' };
-              statusEl.style.background = sc[data.status] || '#6b7280';
-            } else {
-              statusEl.style.display = 'none';
-            }
-          }
-        } else {
-          document.getElementById('origin-code').textContent = '---';
-          document.getElementById('origin-name').textContent = 'Sin datos';
-          document.getElementById('dest-code').textContent = '---';
-          document.getElementById('dest-name').textContent = 'Sin datos';
-        }
-      } catch (e) {
-        document.getElementById('origin-code').textContent = '---';
-        document.getElementById('origin-name').textContent = 'Error';
-        document.getElementById('dest-code').textContent = '---';
-        document.getElementById('dest-name').textContent = 'Error';
+    try {
+      const resp = await fetch(`/api.php?flight=${encodeURIComponent(cs)}&date=${new Date().toISOString().split('T')[0]}`, { signal: AbortSignal.timeout(10000) });
+      const txt = await resp.text();
+      if (!txt || txt.trim() === '' || txt.trim() === '[]') {
+        document.getElementById('origin-name').textContent = 'Sin datos';
+        document.getElementById('dest-name').textContent = '';
+        return;
       }
-    }
-  }
+      const arr = JSON.parse(txt);
+      if (!Array.isArray(arr) || arr.length === 0) {
+        document.getElementById('origin-name').textContent = 'Sin datos';
+        document.getElementById('dest-name').textContent = '';
+        return;
+      }
+      const d = arr[0];
+      document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
+      document.getElementById('origin-name').textContent = d.departure?.airport?.name || 'Sin datos';
+      document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
+      document.getElementById('dest-name').textContent = d.arrival?.airport?.name || 'Sin datos';
 
-  function updateFlightFromAeroDataBox(icao24, details) {
-    const data = AircraftManager.flightData.get(icao24);
-    if (!data) return;
+      if (data && d.airline) data.airline = d.airline.name || '---';
+      if (data && d.aircraft) { data.aircraft = d.aircraft.model || '---'; data.registration = d.aircraft.reg || '---'; }
 
-    if (details.airline) {
-      data.airline = details.airline.name || details.airline.icao || '---';
+      document.getElementById('flight-extra-info').style.display = 'block';
+      document.getElementById('flight-airline').textContent = data.airline || '---';
+      document.getElementById('flight-aircraft').textContent = (data.aircraft || '---') + (data.registration ? ' · ' + data.registration : '');
+      document.getElementById('flight-status').textContent = 'En vuelo';
+      document.getElementById('flight-status').style.display = 'inline-block';
+      document.getElementById('flight-status').style.background = '#22c55e';
+      document.getElementById('flight-status').style.color = '#fff';
+      document.getElementById('flight-scheduled-dep').textContent = d.departure?.scheduledTime?.local ? formatTime(d.departure.scheduledTime.local) : '---';
+      document.getElementById('flight-scheduled-arr').textContent = d.arrival?.scheduledTime?.local ? formatTime(d.arrival.scheduledTime.local) : '---';
+      document.getElementById('flight-actual-dep').textContent = d.departure?.revisedTime?.local ? formatTime(d.departure.revisedTime.local) : '---';
+      document.getElementById('flight-estimated-arr').textContent = d.arrival?.predictedTime?.local ? formatTime(d.arrival.predictedTime.local) : '---';
+    } catch (e) {
+      document.getElementById('origin-name').textContent = 'Error';
+      document.getElementById('dest-name').textContent = '';
     }
-    if (details.number) {
-      data.flightNumber = details.number.iata || details.number.icao || '---';
-    }
-    if (details.aircraft) {
-      data.aircraft = details.aircraft.model || '---';
-      data.registration = details.aircraft.reg || '---';
-    }
-    if (details.departure && details.departure.airport) {
-      data.origin = {
-        iata: details.departure.airport.iata || details.departure.airport.icao || '---',
-        name: details.departure.airport.name || '---'
-      };
-    }
-    if (details.arrival && details.arrival.airport) {
-      data.destination = {
-        iata: details.arrival.airport.iata || details.arrival.airport.icao || '---',
-        name: details.arrival.airport.name || '---'
-      };
-    }
-    if (details.departure) {
-      const schedDep = details.departure.scheduledTime?.local || details.departure.scheduledTime?.utc;
-      data.scheduledDep = schedDep ? formatTime(schedDep) : '---';
-      const actDep = details.departure.revisedTime?.local || details.departure.actualTime?.local;
-      data.actualDep = actDep ? formatTime(actDep) : '---';
-    }
-    if (details.arrival) {
-      const schedArr = details.arrival.scheduledTime?.local || details.arrival.scheduledTime?.utc;
-      data.scheduledArr = schedArr ? formatTime(schedArr) : '---';
-      const estArr = details.arrival.predictedTime?.local || details.arrival.revisedTime?.local;
-      data.estimatedArr = estArr ? formatTime(estArr) : '---';
-    }
-
-    const statusMap = {
-      'SCHEDULED': 'Programado',
-      'ACTIVE': 'En vuelo',
-      'EN ROUTE': 'En vuelo',
-      'DEPARTED': 'Despegado',
-      'LANDED': 'Aterrizado',
-      'ARRIVED': 'Llegado',
-      'CANCELLED': 'Cancelado',
-      'DELAYED': 'Retrasado',
-      'DIVERTED': 'Desviado',
-      'EXPECTED': 'Esperado',
-      'UNKNOWN': 'Desconocido'
-    };
-    data.status = statusMap[details.status] || details.status || 'En vuelo';
-
-    updateFlightInfo({ icao24, callsign: data.callsign, originCountry: data.originCountry });
   }
 
   function formatTime(timeStr) {

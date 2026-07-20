@@ -437,35 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('origin-name').textContent = 'Sin datos de ruta';
     document.getElementById('dest-code').textContent = '---';
     document.getElementById('dest-name').textContent = 'Sin datos de ruta';
-        return;
-      }
-      const arr = JSON.parse(txt);
-      if (!Array.isArray(arr) || arr.length === 0) {
-        document.getElementById('origin-name').textContent = 'Sin datos';
-        document.getElementById('dest-name').textContent = '';
-        return;
-      }
-      const d = arr[0];
-      document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
-      document.getElementById('origin-name').textContent = d.departure?.airport?.name || 'Sin datos';
-      document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
-      document.getElementById('dest-name').textContent = d.arrival?.airport?.name || 'Sin datos';
-
-      document.getElementById('flight-extra-info').style.display = 'block';
-      document.getElementById('flight-airline').textContent = d.airline?.name || '---';
-      document.getElementById('flight-aircraft').textContent = (d.aircraft?.model || '---') + (d.aircraft?.reg ? ' · ' + d.aircraft.reg : '');
-      document.getElementById('flight-status').textContent = d.status || 'En vuelo';
-      document.getElementById('flight-status').style.display = 'inline-block';
-      document.getElementById('flight-status').style.color = '#fff';
-      document.getElementById('flight-status').style.background = '#22c55e';
-      document.getElementById('flight-scheduled-dep').textContent = d.departure?.scheduledTime?.local ? formatTime(d.departure.scheduledTime.local) : '---';
-      document.getElementById('flight-scheduled-arr').textContent = d.arrival?.scheduledTime?.local ? formatTime(d.arrival.scheduledTime.local) : '---';
-      document.getElementById('flight-actual-dep').textContent = d.departure?.revisedTime?.local ? formatTime(d.departure.revisedTime.local) : '---';
-      document.getElementById('flight-estimated-arr').textContent = d.arrival?.predictedTime?.local ? formatTime(d.arrival.predictedTime.local) : '---';
-    } catch (e) {
-      document.getElementById('origin-name').textContent = 'Sin datos';
-      document.getElementById('dest-name').textContent = '';
-    }
   }
 
   function formatTime(timeStr) {

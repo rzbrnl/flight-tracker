@@ -124,25 +124,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const COVER_MAP = {
-      'SKC': 'Despejado',
-      'CLR': 'Despejado',
-      'FEW': 'Pocas nubes',
-      'SCT': 'Nubes dispersas',
-      'BKN': 'Nublado',
-      'OVC': 'Cubierto',
-      'NSC': 'Sin nubes significativas',
-      'NCD': 'Sin nubes detectadas'
-    };
+  const WEATHER_CODES = {
+    0: 'Despejado', 1: 'Principalmente despejado', 2: 'Parcialmente nublado', 3: 'Nublado',
+    45: 'Niebla', 48: 'Niebla con escarcha',
+    51: 'Llovizna ligera', 53: 'Llovizna moderada', 55: 'Llovizna intensa',
+    61: 'Lluvia ligera', 63: 'Lluvia moderada', 65: 'Lluvia intensa',
+    71: 'Nevada ligera', 73: 'Nevada moderada', 75: 'Nevada intensa',
+    80: 'Chubascos ligeros', 81: 'Chubascos moderados', 82: 'Chubascos intensos',
+    95: 'Tormenta', 96: 'Tormenta con granizo', 99: 'Tormenta con granizo fuerte'
+  };
 
-    const CAT_MAP = {
-      'VFR': 'VFR - Buenas condiciones',
-      'MVFR': 'MVFR - Condiciones marginales',
-      'IFR': 'IFR - Malas condiciones',
-      'LIFR': 'LIFR - Condiciones peligrosas'
-    };
+  function calcFlightCategory(vis, cloudCover) {
+    if (vis < 1600 || cloudCover > 89) return { code: 'LIFR', label: 'LIFR - Condiciones peligrosas', color: '#dc2626' };
+    if (vis < 5000 || cloudCover > 69) return { code: 'IFR', label: 'IFR - Malas condiciones', color: '#ef4444' };
+    if (vis < 8000 || cloudCover > 49) return { code: 'MVFR', label: 'MVFR - Condiciones marginales', color: '#3b82f6' };
+    return { code: 'VFR', label: 'VFR - Buenas condiciones', color: '#22c55e' };
+  }
 
-    async function showAirportInfo(airport) {
+  async function showAirportInfo(airport) {
     document.getElementById('sidebar-title').textContent = 'Información del Aeropuerto';
     document.getElementById('flight-route-section').style.display = 'none';
     document.getElementById('flight-details-section').style.display = 'none';
@@ -178,21 +177,25 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebar.classList.add('visible');
 
     try {
-      const response = await fetch(`/api.php?weather=${airport.icao}`);
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${airport.lat}&longitude=${airport.lng}` +
+        `&current=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,weather_code` +
+        `&wind_speed_unit=kn&timezone=auto`;
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        if (data && data.length > 0) {
-          const metar = data[0];
-          document.getElementById('weather-temp').textContent = metar.temp !== undefined ? `${metar.temp}°C` : '---';
-          document.getElementById('weather-wind').textContent = metar.wdir !== undefined ? `${metar.wdir}° ${metar.wspd} kts` : '---';
-          document.getElementById('weather-visibility').textContent = metar.visib || '---';
-          document.getElementById('weather-condition').textContent = COVER_MAP[metar.cover] || metar.cover || '---';
+        const c = data.current;
+        if (c) {
+          document.getElementById('weather-temp').textContent = c.temperature_2m !== undefined ? `${Math.round(c.temperature_2m)}°C` : '---';
+          document.getElementById('weather-wind').textContent = c.wind_direction_10m !== undefined ? `${Math.round(c.wind_direction_10m)}° ${Math.round(c.wind_speed_10m)} kts` : '---';
+          const visMeters = c.visibility;
+          document.getElementById('weather-visibility').textContent = visMeters !== undefined ? (visMeters >= 10000 ? '10+ km' : `${(visMeters / 1000).toFixed(1)} km`) : '---';
+          document.getElementById('weather-condition').textContent = WEATHER_CODES[c.weather_code] || `Código ${c.weather_code}`;
 
-          const cat = metar.fltCat || '---';
-          const catColors = { VFR: '#22c55e', MVFR: '#3b82f6', IFR: '#ef4444', LIFR: '#dc2626' };
+          const cloud = c.cloud_cover || 0;
+          const cat = calcFlightCategory(visMeters || 10000, cloud);
           const catEl = document.getElementById('weather-category');
-          catEl.textContent = CAT_MAP[cat] || cat;
-          catEl.style.color = catColors[cat] || 'var(--text)';
+          catEl.textContent = cat.label;
+          catEl.style.color = cat.color;
         }
       }
     } catch (e) {

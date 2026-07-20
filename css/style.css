@@ -357,16 +357,20 @@ code, .mono {
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .stat-item {
-  padding: 14px;
+  padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   transition: var(--transition);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-item:hover {
@@ -390,11 +394,12 @@ code, .mono {
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
   font-family: 'Google Sans Code', monospace;
+  line-height: 1.2;
 }
 
 .stat-value.accent {
@@ -600,15 +605,16 @@ body.light .airport-marker svg {
 
   .stats-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 8px;
   }
 
   .stat-item {
-    padding: 12px;
+    padding: 10px 12px;
+    min-height: 60px;
   }
 
   .stat-value {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   #bottombar {

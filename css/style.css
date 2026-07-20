@@ -301,6 +301,7 @@ code, .mono {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 8px;
 }
 
 .airport-code {
@@ -314,10 +315,9 @@ code, .mono {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 120px;
 }
 
 .route-line {
@@ -325,14 +325,13 @@ code, .mono {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
-  min-width: 60px;
+  padding-top: 8px;
 }
 
-.route-line svg {
+.route-arrow {
   color: var(--accent);
-  opacity: 0.5;
-  flex-shrink: 0;
+  opacity: 0.6;
+  font-size: 18px;
 }
 
 .route-line::before {

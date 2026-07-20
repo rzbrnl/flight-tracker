@@ -217,12 +217,18 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('flight-status').textContent = fData.status || '---';
 
       const statusEl = document.getElementById('flight-status');
-      if (fData.status && fData.status !== '---' && fData.status !== 'En vuelo') {
+      if (fData.status && fData.status !== '---') {
         statusEl.style.display = 'inline-block';
-        statusEl.style.color = 'var(--accent)';
-      } else if (fData.status === 'En vuelo') {
-        statusEl.style.display = 'inline-block';
-        statusEl.style.color = '#22c55e';
+        statusEl.style.color = '#fff';
+        if (fData.status === 'En vuelo') {
+          statusEl.style.background = '#22c55e';
+        } else if (fData.status === 'Retrasado') {
+          statusEl.style.background = '#ef4444';
+        } else if (fData.status === 'Programado' || fData.status === 'Esperado') {
+          statusEl.style.background = '#3b82f6';
+        } else {
+          statusEl.style.background = '#6b7280';
+        }
       } else {
         statusEl.style.display = 'none';
       }

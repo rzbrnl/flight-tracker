@@ -24,21 +24,16 @@ let currentTile = null;
 let flightRoutes = {};
 let airportCache = {};
 
-async function lookupAirport(code) {
-  if (!code || airportCache[code] !== undefined) return airportCache[code];
+async function findNearestAirport(lat, lng) {
   try {
-    const resp = await fetch(`/api.php?airport=${code}&type=icao`, { signal: AbortSignal.timeout(5000) });
-    const txt = await resp.text();
-    if (!txt || txt.trim() === '' || txt.trim() === '{}') { airportCache[code] = null; return null; }
-    const data = JSON.parse(txt);
-    const name = data.shortName || data.name || data.iata || code;
-    const iata = data.iata || code;
-    airportCache[code] = { name, iata };
-    return airportCache[code];
-  } catch (e) {
-    airportCache[code] = null;
-    return null;
-  }
+    const resp = await fetch(`/api.php?airports=1&lat=${lat}&lon=${lng}&radius=100&limit=1`, { signal: AbortSignal.timeout(5000) });
+    const data = await resp.json();
+    if (data && data.items && data.items.length > 0) {
+      const a = data.items[0];
+      return { iata: a.iata || a.icao, name: a.shortName || a.name || a.iata };
+    }
+  } catch (e) {}
+  return null;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -372,22 +367,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Source 1: OpenSky + AirLabs routes (cached)
     let route = flightRoutes[cs];
+
+    // Source 2: Track-based origin/destination from trajectory
+    const trackDep = flight.trackOrigin;
+    const trackArr = flight.trackDest;
+
     if (route && (route.departure || route.arrival)) {
-      document.getElementById('origin-code').textContent = '...';
-      document.getElementById('origin-name').textContent = 'Buscando...';
-      document.getElementById('dest-code').textContent = '...';
-      document.getElementById('dest-name').textContent = '...';
-
-      const [depInfo, arrInfo] = await Promise.all([
-        route.departure ? lookupAirport(route.departure) : Promise.resolve(null),
-        route.arrival ? lookupAirport(route.arrival) : Promise.resolve(null)
-      ]);
-
-      document.getElementById('origin-code').textContent = depInfo ? depInfo.iata : route.departure || '---';
-      document.getElementById('origin-name').textContent = depInfo ? depInfo.name : (route.departure || 'Sin datos');
-      document.getElementById('dest-code').textContent = arrInfo ? arrInfo.iata : route.arrival || '---';
-      document.getElementById('dest-name').textContent = arrInfo ? arrInfo.name : (route.arrival || 'Sin datos');
-
+      document.getElementById('origin-code').textContent = route.departure || '---';
+      document.getElementById('origin-name').textContent = route.departure || 'Sin datos';
+      document.getElementById('dest-code').textContent = route.arrival || '---';
+      document.getElementById('dest-name').textContent = route.arrival || 'Sin datos';
       document.getElementById('flight-extra-info').style.display = 'block';
       document.getElementById('flight-airline').textContent = route.airline || '---';
       document.getElementById('flight-aircraft').textContent = route.aircraft || '---';
@@ -395,6 +384,22 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('flight-status').style.display = 'inline-block';
       document.getElementById('flight-status').style.color = '#fff';
       document.getElementById('flight-status').style.background = '#22c55e';
+      return;
+    }
+
+    if (trackDep || trackArr) {
+      document.getElementById('origin-name').textContent = 'Buscando...';
+      document.getElementById('dest-name').textContent = '...';
+
+      const [depAirport, arrAirport] = await Promise.all([
+        trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : Promise.resolve(null),
+        trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : Promise.resolve(null)
+      ]);
+
+      document.getElementById('origin-code').textContent = depAirport ? depAirport.iata : '---';
+      document.getElementById('origin-name').textContent = depAirport ? depAirport.name : 'Origen desconocido';
+      document.getElementById('dest-code').textContent = arrAirport ? arrAirport.iata : '---';
+      document.getElementById('dest-name').textContent = arrAirport ? arrAirport.name : 'Destino desconocido';
       return;
     }
 

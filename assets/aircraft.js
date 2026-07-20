@@ -128,31 +128,35 @@ const AircraftManager = {
       }
     });
 
+    let trackOrigin = null;
+    let trackDest = null;
+
     try {
       const response = await fetch(`/api.php?track=${icao24}`);
       if (response.ok) {
         const text = await response.text();
-        if (!text || text.trim() === '') return;
-        const track = JSON.parse(text);
-        if (track && track.path && track.path.length > 0) {
-          const path = track.path
-            .filter(p => p[1] !== null && p[2] !== null)
-            .map(p => [p[1], p[2]]);
-
-          if (path.length > 1) {
-            const trailLine = L.polyline(path, {
-              color: '#3b82f6',
-              weight: 2,
-              opacity: 0.8,
-              dashArray: '6, 8',
-              lineCap: 'round'
-            }).addTo(map);
-            this.trailLines.set(icao24, trailLine);
+        if (text && text.trim() !== '') {
+          const track = JSON.parse(text);
+          if (track && track.path && track.path.length > 0) {
+            const validPath = track.path.filter(p => p[1] !== null && p[2] !== null);
+            if (validPath.length > 1) {
+              trackOrigin = { lat: validPath[0][1], lng: validPath[0][2] };
+              trackDest = { lat: validPath[validPath.length - 1][1], lng: validPath[validPath.length - 2] };
+              const path = validPath.map(p => [p[1], p[2]]);
+              const trailLine = L.polyline(path, {
+                color: '#3b82f6',
+                weight: 2,
+                opacity: 0.8,
+                dashArray: '6, 8',
+                lineCap: 'round'
+              }).addTo(map);
+              this.trailLines.set(icao24, trailLine);
+            }
           }
         }
       }
     } catch (e) {
-      // Track not available for this aircraft
+      // Track not available
     }
 
     if (data && onSelect) {
@@ -164,7 +168,9 @@ const AircraftManager = {
         squawk: data.squawk,
         verticalRate: data.verticalRate,
         heading: data.heading,
-        velocity: data.velocity
+        velocity: data.velocity,
+        trackOrigin,
+        trackDest
       });
     }
   },

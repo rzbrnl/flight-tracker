@@ -1,6 +1,9 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 $ADB_KEY = "fb9d149d14msh857f7f673ea918fp1d3c02jsnfdef20f928c7";
 $OS_CLIENT_ID = "rzbrnl-api-client";

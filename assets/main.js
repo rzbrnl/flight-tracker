@@ -340,6 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
         statusEl.style.display = 'none';
       }
 
+      if (fData.airline) {
+        data.airline = fData.airline;
+      }
+
       if (fData.origin) {
         document.getElementById('origin-code').textContent = fData.origin.iata;
         document.getElementById('origin-name').textContent = fData.origin.name;

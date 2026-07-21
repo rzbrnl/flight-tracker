@@ -121,40 +121,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
     async function loadAirports() {
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-    const radius = zoom < 6 ? 500 : zoom < 8 ? 300 : 150;
-    const limit = zoom < 6 ? 20 : zoom < 8 ? 25 : 30;
+      await loadAirportDb();
+      if (!airportDb) return;
 
-    try {
-      const response = await fetch(`/api.php?airports=1&lat=${center.lat}&lon=${center.lng}&radius=${radius}&limit=${limit}`);
-      if (!response.ok) return;
-      const data = await response.json();
-      if (!data || !data.items) return;
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      const maxDist = zoom < 6 ? 15 : zoom < 8 ? 8 : 4;
 
       airportMarkers.forEach(m => map.removeLayer(m));
       airportMarkers.length = 0;
 
-      data.items.forEach(a => {
-        if (!a.location) return;
-        const marker = L.marker([a.location.lat, a.location.lon], { icon: airportIcon });
-        marker.bindTooltip(`<b>${a.iata || a.icao}</b> — ${a.name || a.shortName || ''}`, {
-          direction: 'top',
-          offset: [0, -12],
-          className: 'airport-tooltip'
+      const nearby = [];
+      for (const [icao, info] of Object.entries(airportDb)) {
+        if (!info.lat || !info.lng) continue;
+        const dlat = info.lat - center.lat;
+        const dlng = info.lng - center.lng;
+        const dist = Math.sqrt(dlat * dlat + dlng * dlng);
+        if (dist < maxDist) {
+          nearby.push({ icao, ...info, dist });
+        }
+      }
+
+      nearby.sort((a, b) => a.dist - b.dist);
+      const shown = nearby.slice(0, 30);
+
+      shown.forEach(a => {
+        const marker = L.marker([a.lat, a.lng], { icon: airportIcon });
+        marker.bindTooltip(`<b>${a.iata}</b> — ${a.name}`, {
+          direction: 'top', offset: [0, -12], className: 'airport-tooltip'
         });
         marker.on('click', () => {
           AircraftManager.clearSelection();
-          selectedAirport = { iata: a.iata || a.icao, name: a.name || a.shortName, icao: a.icao, lat: a.location.lat, lng: a.location.lon, elevation: a.elevation ? a.elevation + ' ft' : '---' };
+          selectedAirport = { iata: a.iata, name: a.name, icao: a.icao, lat: a.lat, lng: a.lng, elevation: '---' };
           showAirportInfo(selectedAirport);
         });
         marker.addTo(map);
         airportMarkers.push(marker);
       });
-    } catch (e) {
-      // Airport search failed, keep static airports
     }
-  }
 
   const WEATHER_CODES = {
     0: 'Despejado', 1: 'Principalmente despejado', 2: 'Parcialmente nublado', 3: 'Nublado',

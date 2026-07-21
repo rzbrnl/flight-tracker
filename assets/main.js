@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // STEP 1: Try AeroDataBox API
+    // STEP 1: AeroDataBox API (datos exactos)
     try {
       const now = new Date();
       const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // STEP 2: Try flightRoutes (OpenSky + AirLabs cached data)
+    // STEP 2: flightRoutes (OpenSky + AirLabs)
     const route = flightRoutes[cs];
     if (route && route.departure && route.arrival) {
       await loadAirportDb();
@@ -427,36 +427,21 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // STEP 3: Use data already in flightData (demo flights, etc.)
-    if (data.origin) {
-      document.getElementById('origin-code').textContent = data.origin.iata || '---';
-      document.getElementById('origin-name').textContent = data.origin.name || '---';
-    }
-    if (data.destination) {
-      document.getElementById('dest-code').textContent = data.destination.iata || '---';
-      document.getElementById('dest-name').textContent = data.destination.name || '---';
-    }
-    if (data.origin || data.destination) return;
-
-    // STEP 4: Track-based geographic fallback
+    // STEP 3: trackOrigin only (departure airport from trajectory)
     const trackDep = flight.trackOrigin;
-    const trackArr = flight.trackDest;
-    if (trackDep || trackArr) {
+    if (trackDep) {
       await loadAirportDb();
-      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
-      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
+      const depAirport = findNearestAirport(trackDep.lat, trackDep.lng);
       if (depAirport) {
         document.getElementById('origin-code').textContent = depAirport.iata;
         document.getElementById('origin-name').textContent = depAirport.name;
       }
-      if (arrAirport) {
-        document.getElementById('dest-code').textContent = arrAirport.iata;
-        document.getElementById('dest-name').textContent = arrAirport.name;
-      }
+      document.getElementById('dest-code').textContent = '---';
+      document.getElementById('dest-name').textContent = 'Sin datos';
       return;
     }
 
-    // STEP 5: No data at all
+    // STEP 4: Sin datos
     document.getElementById('origin-code').textContent = '---';
     document.getElementById('origin-name').textContent = 'Sin datos';
     document.getElementById('dest-code').textContent = '---';

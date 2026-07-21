@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Use AeroDataBox for flight details
+    // STEP 1: Try AeroDataBox API
     try {
       const now = new Date();
       const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
@@ -400,9 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const d = arr[0];
           if (d.departure?.airport?.iata || d.arrival?.airport?.iata) {
             document.getElementById('origin-code').textContent = d.departure?.airport?.iata || '---';
-            document.getElementById('origin-name').textContent = d.departure?.airport?.name || d.departure?.airport?.iata || 'Sin datos';
+            document.getElementById('origin-name').textContent = d.departure?.airport?.name || '---';
             document.getElementById('dest-code').textContent = d.arrival?.airport?.iata || '---';
-            document.getElementById('dest-name').textContent = d.arrival?.airport?.name || d.arrival?.airport?.iata || 'Sin datos';
+            document.getElementById('dest-name').textContent = d.arrival?.airport?.name || '---';
             if (d.airline?.name) {
               document.getElementById('flight-extra-info').style.display = 'block';
               document.getElementById('flight-airline').textContent = d.airline.name;
@@ -414,6 +414,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
+    // STEP 2: Try flightRoutes (OpenSky + AirLabs cached data)
+    const route = flightRoutes[cs];
+    if (route && route.departure && route.arrival) {
+      await loadAirportDb();
+      const depInfo = resolveAirport(route.departure);
+      const arrInfo = resolveAirport(route.arrival);
+      document.getElementById('origin-code').textContent = depInfo ? depInfo.iata : route.departure;
+      document.getElementById('origin-name').textContent = depInfo ? depInfo.name : route.departure;
+      document.getElementById('dest-code').textContent = arrInfo ? arrInfo.iata : route.arrival;
+      document.getElementById('dest-name').textContent = arrInfo ? arrInfo.name : route.arrival;
+      return;
+    }
+
+    // STEP 3: Use data already in flightData (demo flights, etc.)
+    if (data.origin) {
+      document.getElementById('origin-code').textContent = data.origin.iata || '---';
+      document.getElementById('origin-name').textContent = data.origin.name || '---';
+    }
+    if (data.destination) {
+      document.getElementById('dest-code').textContent = data.destination.iata || '---';
+      document.getElementById('dest-name').textContent = data.destination.name || '---';
+    }
+    if (data.origin || data.destination) return;
+
+    // STEP 4: Track-based geographic fallback
+    const trackDep = flight.trackOrigin;
+    const trackArr = flight.trackDest;
+    if (trackDep || trackArr) {
+      await loadAirportDb();
+      const depAirport = trackDep ? findNearestAirport(trackDep.lat, trackDep.lng) : null;
+      const arrAirport = trackArr ? findNearestAirport(trackArr.lat, trackArr.lng) : null;
+      if (depAirport) {
+        document.getElementById('origin-code').textContent = depAirport.iata;
+        document.getElementById('origin-name').textContent = depAirport.name;
+      }
+      if (arrAirport) {
+        document.getElementById('dest-code').textContent = arrAirport.iata;
+        document.getElementById('dest-name').textContent = arrAirport.name;
+      }
+      return;
+    }
+
+    // STEP 5: No data at all
     document.getElementById('origin-code').textContent = '---';
     document.getElementById('origin-name').textContent = 'Sin datos';
     document.getElementById('dest-code').textContent = '---';
